@@ -2,23 +2,23 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError, ProgrammingError
 
-db_password = os.environ.get("DB_PASSWORD")
+def db_connect(root):
+    db_password = os.environ.get("DB_ROOT_PASSWORD") if root else os.environ.get("DB_PASSWORD")
+    db_user = "root" if root else "p12admin"
 
-if db_password is None:
-    raise ValueError("DB_PASSWORD environment variable not set.")
+    if db_password is None:
+        raise ValueError("DB_PASSWORD environment variable not set.")
 
-# Example for MySQL
-DATABASE_URL = f"mysql+pymysql://p12admin:{db_password}@localhost:3306/project12"
-engine = create_engine(DATABASE_URL)
+    # Example for MySQL
+    DATABASE_URL = f"mysql+pymysql://{db_user}:{db_password}@localhost:3306/project12"
+    engine = create_engine(DATABASE_URL)
 
-try:
-    with engine.connect() as connection:
-        print("Successfully connected to the database!")
-except OperationalError as e:
-    print(f"Connection failed: {e}")
-    print("Please check your database server status, host, port, and network connectivity.")
-except ProgrammingError as e:
-    print(f"Authentication or database error: {e}")
-    print("Please check your username, password, and if the database exists.")
-except Exception as e:
-    print(f"An unexpected error occurred: {e}")
+    try:
+        with engine.connect() as connection:
+            return engine
+    except OperationalError as e:
+        return f"Connection failed: {e}"
+    except ProgrammingError as e:
+        return f"Authentication or database error: {e}"
+    except Exception as e:
+        return f"An unexpected error occurred: {e}"
