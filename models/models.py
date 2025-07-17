@@ -43,7 +43,7 @@ class Client(Base):
     events: Mapped[list["Event"]] = relationship("Event", back_populates="client")
     
 
-class Contract:
+class Contract(Base):
     __tablename__ = "contracts"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -59,7 +59,7 @@ class Contract:
     client: Mapped["Client"] = relationship("Client", back_populates="contracts")
     user: Mapped["User"] = relationship("User", back_populates="contracts")
 
-class Event:
+class Event(Base):
     __tablename__ = "events"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
