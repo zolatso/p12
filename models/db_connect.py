@@ -2,7 +2,7 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.exc import OperationalError, ProgrammingError
 
-def db_connect(root):
+def db_connect(root=False):
     db_password = os.environ.get("DB_ROOT_PASSWORD") if root else os.environ.get("DB_PASSWORD")
     db_user = "root" if root else "p12admin"
 

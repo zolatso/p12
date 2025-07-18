@@ -82,5 +82,5 @@ class Event(Base):
 
 if __name__ == "__main__":
     # Create the tables
-    engine = db_connect(True)
+    engine = db_connect(root=True)
     Base.metadata.create_all(engine)
