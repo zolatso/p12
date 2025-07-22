@@ -1,11 +1,15 @@
-from sqlalchemy import Integer, String, DateTime, ForeignKey, Enum
+import datetime
+import enum
+from sqlalchemy import Integer, String, DateTime, ForeignKey, Enum, Table, Column
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.orm import relationship
-import datetime
-from db_connect import db_connect
-import enum
+from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError
 
-class UserRole(enum.Enum):
+# Initialize the password hasher
+ph = PasswordHasher()
+
+class UserRoleEnum(enum.Enum):
     COMMERCIAL = 'commercial'
     GESTION = 'gestion'
     SUPPORT = 'support'
@@ -14,17 +18,70 @@ class UserRole(enum.Enum):
 class Base(DeclarativeBase):
     pass
 
+
+role_permission_association = Table(
+    'role_permission_association',
+    Base.metadata,
+    Column('role_id', ForeignKey('roles.id'), primary_key=True),
+    Column('permission_id', ForeignKey('permissions.id'), primary_key=True)
+)
+
+
 class User(Base):
     __tablename__ = "users"
     
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(50), nullable=False)
     email: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
-    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
-    role: Mapped[UserRole] = mapped_column(Enum(UserRole), nullable=False)
+    hashed_password: Mapped[str] = mapped_column(nullable=False)
+    role_id: Mapped[int] = mapped_column(ForeignKey('roles.id'), nullable=False)
 
     clients: Mapped[list["Client"]] = relationship("Client", back_populates="user")
     events: Mapped[list["Event"]] = relationship("Event", back_populates="user")
+    role_obj: Mapped["Role"] = relationship(back_populates="users")
+
+    def set_password(self, password: str):
+        self.hashed_password = ph.hash(password)
+
+    def verify_password(self, password: str) -> bool:
+        try:
+            ph.verify(self.hashed_password, password)
+            return True
+        except VerifyMismatchError:
+            return False
+        except Exception as e:
+            # Handle other potential errors during verification (e.g., malformed hash)
+            print(f"Error during password verification: {e}")
+            return False
+
+
+class Role(Base):
+    __tablename__ = 'roles'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[UserRoleEnum] = mapped_column(Enum(UserRoleEnum), nullable=False)
+    description: Mapped[str] = mapped_column(default="")
+
+    # Define the many-to-many relationship with Permission
+    permissions: Mapped[list["Permission"]] = relationship(
+        secondary=role_permission_association,
+        back_populates="roles"
+    )
+    # Define a one-to-many relationship with User
+    users: Mapped[list["User"]] = relationship(back_populates="role_obj")
+
+
+class Permission(Base):
+    __tablename__ = 'permissions'
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(unique=True, nullable=False)
+    description: Mapped[str] = mapped_column(default="")
+
+    # Define the many-to-many relationship with Role
+    roles: Mapped[list["Role"]] = relationship(
+        secondary=role_permission_association,
+        back_populates="permissions"
+    )
 
 
 class Client(Base):
@@ -33,7 +90,7 @@ class Client(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     fullname: Mapped[str] = mapped_column(String(100), nullable=False)
     email: Mapped[str] = mapped_column(String(100), nullable=False)
-    phone: Mapped[str] = mapped_column(String(100), nullable=False)
+    phone: Mapped[str] = mapped_column(String(20), nullable=False)
     business_name: Mapped[str] = mapped_column(String(100), nullable=False)
     # User is going to input these two dates manually. They may not correspond to table creation/modification.
     created_at: Mapped[datetime.datetime] = mapped_column(
@@ -81,7 +138,6 @@ class Event(Base):
 
 
 
-if __name__ == "__main__":
-    # Create the tables
-    engine = db_connect(root=True)
-    Base.metadata.create_all(engine)
+
+    
+    

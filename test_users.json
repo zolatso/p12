@@ -1,0 +1,14 @@
+{   
+    "users" : [
+        {
+            "name" : "Tom Saunders",
+            "email" : "tomsaunders1@gmail.com",
+            "password" : "OpenClassrooms2025!!!"
+        },
+        {
+            "name" : "Tom Smith",
+            "email" : "tomsmith1@gmail.com",
+            "password" : "OpenClassrooms2025!!!"
+        }
+    ]
+}
