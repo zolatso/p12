@@ -1,10 +1,6 @@
-from db.db_connect import db_connect
-from db.db_actions import create_tables
+def main():
+    pass
 
 if __name__ == "__main__":
-    
-    engine = db_connect(root=True)
-
-    create_tables(engine)
-
+    main()
 

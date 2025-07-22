@@ -1,10 +1,12 @@
 import datetime
 import enum
 from sqlalchemy import Integer, String, DateTime, ForeignKey, Enum, Table, Column
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.orm import relationship
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
+
+from .__init__ import Base
 
 # Initialize the password hasher
 ph = PasswordHasher()
@@ -13,10 +15,6 @@ class UserRoleEnum(enum.Enum):
     COMMERCIAL = 'commercial'
     GESTION = 'gestion'
     SUPPORT = 'support'
-
-
-class Base(DeclarativeBase):
-    pass
 
 
 role_permission_association = Table(
