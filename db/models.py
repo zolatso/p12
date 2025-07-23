@@ -1,12 +1,12 @@
 import datetime
 import enum
 from sqlalchemy import Integer, String, DateTime, ForeignKey, Enum, Table, Column
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase
 from sqlalchemy.orm import relationship
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 
-from .__init__ import Base
+
 
 # Initialize the password hasher
 ph = PasswordHasher()
@@ -15,6 +15,10 @@ class UserRoleEnum(enum.Enum):
     COMMERCIAL = 'commercial'
     GESTION = 'gestion'
     SUPPORT = 'support'
+
+
+class Base(DeclarativeBase):
+    pass
 
 
 role_permission_association = Table(
@@ -31,11 +35,11 @@ class User(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(50), nullable=False)
     email: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
-    hashed_password: Mapped[str] = mapped_column(nullable=False)
+    hashed_password: Mapped[str] = mapped_column(String(256), nullable=False)
     role_id: Mapped[int] = mapped_column(ForeignKey('roles.id'), nullable=False)
 
     clients: Mapped[list["Client"]] = relationship("Client", back_populates="user")
-    events: Mapped[list["Event"]] = relationship("Event", back_populates="user")
+    events: Mapped[list["Event"]] = relationship("Event", back_populates="support")
     role_obj: Mapped["Role"] = relationship(back_populates="users")
 
     def set_password(self, password: str):
@@ -58,7 +62,6 @@ class Role(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[UserRoleEnum] = mapped_column(Enum(UserRoleEnum), nullable=False)
-    description: Mapped[str] = mapped_column(default="")
 
     # Define the many-to-many relationship with Permission
     permissions: Mapped[list["Permission"]] = relationship(
@@ -72,8 +75,8 @@ class Role(Base):
 class Permission(Base):
     __tablename__ = 'permissions'
     id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(unique=True, nullable=False)
-    description: Mapped[str] = mapped_column(default="")
+    name: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
+    description: Mapped[str] = mapped_column(String(100), nullable=False)
 
     # Define the many-to-many relationship with Role
     roles: Mapped[list["Role"]] = relationship(
@@ -115,7 +118,7 @@ class Contract(Base):
     is_signed: Mapped[bool]
 
     client: Mapped["Client"] = relationship("Client", back_populates="contracts")
-
+    event: Mapped["Event"] = relationship(back_populates="contract", uselist=False)
 
 class Event(Base):
     __tablename__ = "events"

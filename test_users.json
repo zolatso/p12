@@ -9,6 +9,11 @@
             "name" : "Tom Smith",
             "email" : "tomsmith1@gmail.com",
             "password" : "OpenClassrooms2025!!!"
+        },
+        {
+            "name" : "John Smith",
+            "email" : "johnsmith1@gmail.com",
+            "password" : "OpenClassrooms2025!!!"
         }
     ]
 }

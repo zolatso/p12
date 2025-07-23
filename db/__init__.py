@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, DeclarativeBase
+from sqlalchemy.orm import sessionmaker
 import os
 from sqlalchemy.exc import OperationalError, ProgrammingError
 
@@ -11,7 +11,7 @@ def db_connect(root=False):
         raise ValueError("DB_PASSWORD environment variable not set.")
 
     DATABASE_URL = f"mysql+pymysql://{db_user}:{db_password}@localhost:3306/project12"
-    engine = create_engine(DATABASE_URL)
+    engine = create_engine(DATABASE_URL, echo=True)
 
     try:
         with engine.connect() as connection:
@@ -27,5 +27,3 @@ engine = db_connect()
 
 Session = sessionmaker(bind=engine)
 
-class Base(DeclarativeBase):
-    pass
