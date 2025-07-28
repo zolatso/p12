@@ -1,7 +1,9 @@
+import os
+from contextlib import contextmanager
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-import os
-from sqlalchemy.exc import OperationalError, ProgrammingError
+from sqlalchemy.exc import OperationalError, ProgrammingError, SQLAlchemyError
+
 
 def db_connect(root=False):
     db_password = os.environ.get("DB_ROOT_PASSWORD") if root else os.environ.get("DB_PASSWORD")
@@ -26,4 +28,18 @@ def db_connect(root=False):
 engine = db_connect()
 
 Session = sessionmaker(bind=engine)
+
+@contextmanager
+def get_db_session(read_only: bool = False):
+    db = Session()
+    try:
+        yield db
+        if not read_only:
+            db.commit()
+    except SQLAlchemyError as e:
+        print(f"An error occurred during commit: {e}")
+        db.rollback()
+        raise
+    finally:
+        db.close()
 
