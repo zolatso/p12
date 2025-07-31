@@ -1,7 +1,9 @@
-from db.crud import get_user
+from views.views import authenticate
+from db import get_db_session
+from db.models import User
 
 def main():
-    user = get_user("tomsaunders1@gmail.com", "OpenClassrooms2025!!!")
+    pass
 
 if __name__ == "__main__":
     main()

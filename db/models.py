@@ -99,6 +99,7 @@ class Client(Base):
     updated_at: Mapped[datetime.datetime] = mapped_column(
         DateTime(timezone=True),  
         onupdate=datetime.datetime.now)
+    # this should be auto assigned to the user that creates the client
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
 
     user: Mapped["User"] = relationship("User", back_populates="clients")

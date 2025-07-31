@@ -25,7 +25,7 @@ def db_connect(root=False):
     except Exception as e:
         return f"An unexpected error occurred: {e}"
 
-engine = db_connect()
+engine = db_connect(root=True)
 
 Session = sessionmaker(bind=engine)
 
