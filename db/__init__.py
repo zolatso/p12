@@ -13,7 +13,7 @@ def db_connect(root=False):
         raise ValueError("DB_PASSWORD environment variable not set.")
 
     DATABASE_URL = f"mysql+pymysql://{db_user}:{db_password}@localhost:3306/project12"
-    engine = create_engine(DATABASE_URL, echo=True)
+    engine = create_engine(DATABASE_URL)
 
     try:
         with engine.connect() as connection:

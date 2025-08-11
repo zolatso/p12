@@ -1,5 +1,5 @@
 import click
-from exc import UserDoesNotExistError, InvalidPasswordError
+from exc.exc import AuthError
 from db.crud import get_user 
 
 @click.command()
@@ -16,9 +16,8 @@ def authenticate(email):
     try:
         user = get_user(email, password)
         click.echo(f"Successfully logged in user: {user.name}.")
-    except UserDoesNotExistError:
-        click.echo("Sorry, that user doesn't exist.")
-    except InvalidPasswordError:
-        click.echo("Incorrect password.")
+        click.echo(user.clients)
+    except AuthError:
+        click.echo("Sorry, the user or password is incorrect.")
     except Exception as e:
         click.echo(f"An unexpected error occurred: {e}")

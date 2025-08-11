@@ -1,30 +1,54 @@
 from .__init__ import engine, get_db_session
-from .models import UserRoleEnum, Role, User, Base, Permission
+from .models import UserRoleEnum, Role, User, Base, Permission, role_permission_association
 from .crud import create_user
 
 
 def add_roles_users_permissions():
-    # Add roles if they don't exist
     with get_db_session() as db:
+        # Add roles, permissions, and their relations if they don't exist
         if db.query(Role).first() is None:
-            commercial = db.add(Role(name=UserRoleEnum.COMMERCIAL))
-            gestion = db.add(Role(name=UserRoleEnum.GESTION))
-            support = db.add(Role(name=UserRoleEnum.SUPPORT))
+            commercial = Role(name=UserRoleEnum.COMMERCIAL)
+            gestion = Role(name=UserRoleEnum.GESTION)
+            support = Role(name=UserRoleEnum.SUPPORT)
+            db.add_all([commercial, gestion, support])
 
         if db.query(Permission).first() is None:
-            create_client = db.add(Permission(name="create client", description="equipe commercial"))
-            update_client = db.add(Permission(name="update client", description="only the commercial who is responsible for the client"))
-            create_contract = db.add(Permission(name="create contract", description="equipe gestion"))
-            updated_contract = db.add(Permission(name="update contract", description="only those contracts that commercial is responsible for"))
-            create_event = db.add(Permission(name="create event", description="equipe commercial"))
-            read = db.add(Permission(name="read a resouce", description="anyone"))
-            add_support_to_event = db.add(Permission(name="add support to event", description="equipe gestion"))
-            update_user = db.add(Permission(name="update user", description="equipe gestion"))
-            add_new_user = db.add(Permission(name="create user", description="equipe gestion"))
-            delete_user = db.add(Permission(name="delete user", description="equipe gestion"))
+            can_read = Permission(name="read a resource", description="anyone")
+            create_client = Permission(name="create client", description="equipe commercial")
+            update_client = Permission(name="update client", description="equipe commercial")
+            update_contract = Permission(name="update contract", description="equipe commercial")
+            create_event = Permission(name="create event", description="equipe commercial")
+            create_contract = Permission(name="create contract", description="equipe gestion")
+            add_support_to_event = Permission(name="add support to event", description="equipe gestion")
+            update_user = Permission(name="update user", description="equipe gestion")
+            add_new_user = Permission(name="create user", description="equipe gestion")
+            delete_user = Permission(name="delete user", description="equipe gestion")
+            db.add_all([
+                can_read, 
+                create_client, 
+                update_client,
+                update_contract,
+                create_event,
+                create_contract,
+                add_support_to_event,
+                update_user,
+                add_new_user,
+                delete_user
+            ])
+
+        if db.query(role_permission_association).first() is None:
+            commercial.permissions.extend([can_read, create_client, update_client, update_contract, create_event])
+            gestion.permissions.extend([
+                can_read, 
+                create_contract, 
+                add_support_to_event, 
+                update_user, 
+                add_new_user, 
+                delete_user
+                ])
+            support.permissions.append(can_read)
         
-    # Add test users if table is empty
-    with get_db_session() as db:
+        #Add users if they don't exist
         if db.query(User).first() is None:
             create_user(
                 db, 
@@ -47,8 +71,6 @@ def add_roles_users_permissions():
                 "OpenClassrooms2025!!!", 
                 UserRoleEnum.SUPPORT
                 )
-            
-    # Create permissions to roles relationships
             
 def create_tables():
     Base.metadata.create_all(engine)

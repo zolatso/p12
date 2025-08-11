@@ -1,14 +1,12 @@
 from .models import Role, User
 from .__init__ import get_db_session
-from exc import InvalidPasswordError, UserDoesNotExistError
+from exc.exc import AuthError
 
 def get_user(email, password):
     with get_db_session(read_only=True) as db:
         user = db.query(User).filter_by(email=email).first()
-        if not user:
-            raise UserDoesNotExistError("User does not exist")
-        if not user.verify_password(password):
-            raise InvalidPasswordError("Invalid password")
+        if not user or user.verify_password(password):
+            raise AuthError("Email or password is incorrect")
         return user
 
 
