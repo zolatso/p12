@@ -1,13 +1,21 @@
 from .models import Role, User
 from .__init__ import get_db_session
-from exc.exc import AuthError
+from auth.exc import AuthError
 
-def get_user(email, password):
+def get_user_details(email : str, password : str) -> dict:
+    """ Looks up a user, validates email/pw combo, returns details for JWT payload"""
     with get_db_session(read_only=True) as db:
         user = db.query(User).filter_by(email=email).first()
-        if not user or user.verify_password(password):
-            raise AuthError("Email or password is incorrect")
-        return user
+        if not user:
+            raise AuthError("Email not exist")
+        if not user.verify_password(password):
+            raise AuthError("password is incorrect")
+        user_details = {
+            "name" : user.name,
+            "role" : user.role_obj.name.value,
+            "permissions" : [perm.name for perm in user.role_obj.permissions],
+        }
+        return user_details
 
 
 def create_user(db_session, username, email, plain_password, role_name):

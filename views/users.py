@@ -6,10 +6,9 @@ def user_group(ctx):
     """User commands"""
 
 @user_group.command()
-@click.argument("name")
 @click.pass_context
-def add(ctx, name):
-    pass
+def add(ctx):
+    print(ctx.obj)
 
 @user_group.command()
 @click.argument("name")
