@@ -1,10 +1,9 @@
 import click
-import jwt
 
 from .users import user_group
 from auth.token import get_stored_jwt_from_file, generate_and_store_jwt, verify_jwt
 from auth.file_actions import clear_token_file
-from auth.exc import AuthError
+from auth.exc import AuthError, AuthExpiredError, AuthInvalidError
 from db.crud import get_user_details
 
 def login_prompt():
@@ -30,10 +29,10 @@ def cli_main(ctx):
             ctx.ensure_object(dict)
             ctx.obj["token"] = data
             break
-        except jwt.ExpiredSignatureError:
+        except AuthExpiredError:
             print("JWT has expired.")
             clear_token_file()
-        except jwt.InvalidTokenError:
+        except AuthInvalidError:
             print("Invalid JWT.")
             clear_token_file()
         except Exception as e:

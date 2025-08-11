@@ -2,6 +2,7 @@ import jwt
 import datetime
 
 from .file_actions import write_token_to_file, read_token_from_file
+from .exc import AuthExpiredError, AuthInvalidError
 from . import SECRET_KEY
 
 def get_stored_jwt_from_file() -> str | None:
@@ -49,6 +50,11 @@ def verify_jwt(token: str) -> dict | None:
     Returns:
         dict | None: The decoded payload if valid, None otherwise.
     """
-    return jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+    try:
+        return jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+    except jwt.ExpiredSignatureError as e:
+        raise AuthExpiredError("JWT expired") from e
+    except jwt.InvalidTokenError as e:
+        raise AuthInvalidError("JWT invalid") from e
 
 
