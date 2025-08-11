@@ -2,7 +2,6 @@ import click
 
 from .users import user_group
 from auth.token import get_stored_jwt_from_file, generate_and_store_jwt, verify_jwt
-from auth.file_actions import clear_token_file
 from auth.exc import AuthError, AuthExpiredError, AuthInvalidError
 from db.crud import get_user_details
 
@@ -31,10 +30,8 @@ def cli_main(ctx):
             break
         except AuthExpiredError:
             print("JWT has expired.")
-            clear_token_file()
         except AuthInvalidError:
             print("Invalid JWT.")
-            clear_token_file()
         except Exception as e:
             print(f"Unexpected error: {e}")
 

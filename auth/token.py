@@ -1,7 +1,7 @@
 import jwt
 import datetime
 
-from .file_actions import write_token_to_file, read_token_from_file
+from .file_actions import write_token_to_file, read_token_from_file, clear_token_file
 from .exc import AuthExpiredError, AuthInvalidError
 from . import SECRET_KEY
 
@@ -53,8 +53,10 @@ def verify_jwt(token: str) -> dict | None:
     try:
         return jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
     except jwt.ExpiredSignatureError as e:
+        clear_token_file()
         raise AuthExpiredError("JWT expired") from e
     except jwt.InvalidTokenError as e:
+        clear_token_file()
         raise AuthInvalidError("JWT invalid") from e
 
 
