@@ -1,9 +1,7 @@
-from db.db_init import add_roles_users_permissions, create_tables
-from db import get_db_session
-from db.models import User
+from views.main_group import cli_main
 
 def main():
-    add_roles_users_permissions()
+    cli_main()
 
 if __name__ == "__main__":
     main()

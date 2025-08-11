@@ -1,23 +1,13 @@
 import click
 from exc.exc import AuthError
-from db.crud import get_user 
+from db.crud import get_user
+from .users import user_group
 
-@click.command()
-@click.argument('email', required=False)
-def authenticate(email):
-    """
-    CLI tool for user login.
-    """
-    if not email:
-        email = click.prompt("Enter your email")
+@click.group()
+@click.pass_context
+def cli_main(ctx):
+    # auth logic here, ctx.obj setup etc.
+    ctx.ensure_object(dict)
+    ctx.obj["token"] = "some token info or object"
 
-    password = click.prompt("Enter your password", hide_input=True)
-
-    try:
-        user = get_user(email, password)
-        click.echo(f"Successfully logged in user: {user.name}.")
-        click.echo(user.clients)
-    except AuthError:
-        click.echo("Sorry, the user or password is incorrect.")
-    except Exception as e:
-        click.echo(f"An unexpected error occurred: {e}")
+cli_main.add_command(user_group)
