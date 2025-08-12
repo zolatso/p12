@@ -30,7 +30,6 @@ def generate_and_store_jwt(user_details: dict) -> str | None:
         }
         user_details.update(time_concepts)
         payload = user_details
-        print(payload)
         encoded_jwt = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
 
         # Store the token in the local file
@@ -54,7 +53,7 @@ def verify_jwt(token: str) -> dict | None:
         return jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
     except jwt.ExpiredSignatureError as e:
         clear_token_file()
-        raise AuthExpiredError("JWT expired") from e
+        raise AuthExpiredError("Your login token has expired.") from e
     except jwt.InvalidTokenError as e:
         clear_token_file()
         raise AuthInvalidError("JWT invalid") from e

@@ -1,5 +1,7 @@
-from .models import Role, User
-from .__init__ import get_db_session
+from datetime import datetime
+
+from .models import Role, User, Client
+from . import get_db_session
 from auth.exc import AuthError
 
 def get_user_details(email : str, password : str) -> dict:
@@ -25,6 +27,23 @@ def create_user(db_session, username, email, plain_password, role_name):
     user = User(name=username, email=email, role_obj=role)
     user.set_password(plain_password)
     db_session.add(user)
+
+def create_client(user, fullname, email, phone, business_name, created_at):
+    with get_db_session() as db:
+        user_id = db.query(User.id).filter_by(name=user).scalar()
+        client_kwargs = {
+            "fullname": fullname,
+            "email": email,
+            "phone": phone,
+            "business_name": business_name,
+            "created_at": datetime.strptime(created_at, "%d/%m/%Y"),
+            "updated_at": datetime.now(),
+            "user_id": user_id
+        }
+
+        new_client = Client(**client_kwargs)
+        db.add(new_client)
+
 
 
 

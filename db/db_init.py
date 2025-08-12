@@ -1,4 +1,4 @@
-from .__init__ import engine, get_db_session
+from . import engine, get_db_session
 from .models import UserRoleEnum, Role, User, Base, Permission, role_permission_association
 from .crud import create_user
 

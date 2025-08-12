@@ -1,7 +1,7 @@
 import json
 import os
 
-from .__init__ import TOKEN_FILE
+from . import TOKEN_FILE
 
 def write_token_to_file(token: str):
     """Writes the JWT token and associated username to a local JSON file."""
@@ -13,7 +13,7 @@ def write_token_to_file(token: str):
 
 def read_token_from_file():
     """Reads the JWT token and username from a local JSON file.
-    Returns (username, token) tuple, or (None, None) if not found or error.
+    Returns token or None if not found or error.
     """
     if not os.path.exists(TOKEN_FILE):
         return None
@@ -33,7 +33,6 @@ def clear_token_file():
     if os.path.exists(TOKEN_FILE):
         try:
             os.remove(TOKEN_FILE)
-            print(f"🗑️ Cleared token file: {TOKEN_FILE}")
         except OSError as e:
             print(f"Error removing token file {TOKEN_FILE}: {e}")
 
