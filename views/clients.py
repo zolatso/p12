@@ -11,9 +11,9 @@ def client_group(ctx):
 @click.pass_context
 def add(ctx):
     # Check permissions
-    permissions = ctx.obj["token"]["permissions"]
+    permissions = ctx.obj["permissions"]
     if "create client" in permissions:
-        user = ctx.obj["token"]["name"]
+        user = ctx.obj["name"]
         click.echo(f"Bienvenu, {user}. Vous allez ajouter un nouveau client.")
         fullname = click.prompt("Nom et prenom du client")
         email = click.prompt("Email")
@@ -35,6 +35,8 @@ def add(ctx):
             click.echo(f"Unexpected error: {e}")
     else:
         click.echo("Vous n'avez pas le droit de faire cet action.")
+
+
 
 
 

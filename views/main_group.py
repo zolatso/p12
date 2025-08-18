@@ -1,4 +1,4 @@
-import click
+import rich_click as click
 
 from auth.token import get_stored_jwt_from_file, generate_and_store_jwt, verify_jwt
 from auth.exc import AuthError, AuthExpiredError, AuthInvalidError
@@ -29,7 +29,7 @@ def cli_main(ctx):
         try:    
             data = verify_jwt(token)
             ctx.ensure_object(dict)
-            ctx.obj["token"] = data
+            ctx.obj = data
             break
         except AuthExpiredError:
             print("JWT has expired.")

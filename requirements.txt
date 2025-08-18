@@ -4,8 +4,13 @@ cffi==1.17.1
 click==8.2.1
 cryptography==45.0.5
 greenlet==3.2.3
+markdown-it-py==4.0.0
+mdurl==0.1.2
 pycparser==2.22
+Pygments==2.19.2
 PyJWT==2.10.1
 PyMySQL==1.1.1
+rich==14.1.0
+rich-click==1.8.9
 SQLAlchemy==2.0.41
 typing_extensions==4.14.1

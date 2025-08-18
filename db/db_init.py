@@ -1,6 +1,6 @@
 from . import engine, get_db_session
 from .models import UserRoleEnum, Role, User, Base, Permission, role_permission_association
-from .crud import create_user
+from .crud import create_user_init
 
 
 def add_roles_users_permissions():
@@ -50,21 +50,21 @@ def add_roles_users_permissions():
         
         #Add users if they don't exist
         if db.query(User).first() is None:
-            create_user(
+            create_user_init(
                 db, 
                 "Tom Saunders", 
                 "tomsaunders1@gmail.com", 
                 "OpenClassrooms2025!!!", 
                 UserRoleEnum.COMMERCIAL
                 )
-            create_user(
+            create_user_init(
                 db, 
                 "Tom Smith", 
                 "tomsmith1@gmail.com", 
                 "OpenClassrooms2025!!!", 
                 UserRoleEnum.GESTION
                 )
-            create_user(
+            create_user_init(
                 db, 
                 "John Smith", 
                 "johnsmith1@gmail.com", 

@@ -18,9 +18,31 @@ def get_user_details(email : str, password : str) -> dict:
             "permissions" : [perm.name for perm in user.role_obj.permissions],
         }
         return user_details
+    
+def get_usernames():
+    with get_db_session(read_only=True) as db:
+        return [n for (n, ) in db.query(User.name).all()]
 
+def get_specific_user(name):
+    with get_db_session(read_only=True) as db:
+        object = db.query(User).filter_by(name=name).first()
+        user = {
+            "name" : object.name,
+            "email" : object.email,
+            "role" : object.role_obj.name.value
+        }
+        return user
+    
+def create_user(name, email, plain_password, role_name):
+    with get_db_session() as db:
+        role = db.query(Role).filter(Role.name == role_name).first()
+        if not role:
+            raise ValueError(f"Role '{role_name}' not found.")
+        user = User(name=name, email=email, role_obj=role)
+        user.set_password(plain_password)
+        db.add(user)
 
-def create_user(db_session, username, email, plain_password, role_name):
+def create_user_init(db_session, username, email, plain_password, role_name):
     role = db_session.query(Role).filter(Role.name == role_name).first()
     if not role:
         raise ValueError(f"Role '{role_name}' not found.")

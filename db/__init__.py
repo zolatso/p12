@@ -10,7 +10,7 @@ def db_connect(root=False):
     db_user = "root" if root else "p12admin"
 
     if db_password is None:
-        raise ValueError("DB_PASSWORD environment variable not set.")
+        raise ValueError(f"Database password environment variable not set. You are trying to login as {db_user}.")
 
     DATABASE_URL = f"mysql+pymysql://{db_user}:{db_password}@localhost:3306/project12"
     engine = create_engine(DATABASE_URL)
