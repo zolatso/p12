@@ -2,7 +2,7 @@ import rich_click as click
 
 from auth.token import get_stored_jwt_from_file, generate_and_store_jwt, verify_jwt
 from auth.exc import AuthError, AuthExpiredError, AuthInvalidError
-from db.crud import get_user_details
+from db.read import get_user_details
 from auth.file_actions import clear_token_file
 from .users import user_group
 from .clients import client_group

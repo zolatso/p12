@@ -1,6 +1,6 @@
 from . import engine, get_db_session
 from .models import UserRoleEnum, Role, User, Base, Permission, role_permission_association
-from .crud import create_user_init
+from .create import create_user_init
 
 
 def add_roles_users_permissions():

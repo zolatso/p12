@@ -1,6 +1,6 @@
 import click
 
-from db.crud import create_client
+from db.create import create_client
 
 @click.group()
 @click.pass_context
