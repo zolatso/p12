@@ -21,6 +21,10 @@ def get_usernames():
     with get_db_session(read_only=True) as db:
         return [n for (n, ) in db.query(User.name).all()]
     
+def get_commercial_usernames():
+    with get_db_session(read_only=True) as db:
+        return [n for (n, ) in db.query(User.name).join(User.role_obj).filter(Role.name == "commercial")]
+    
 def get_clients():
     with get_db_session(read_only=True) as db:
         return [n for (n, ) in db.query(Client.fullname).all()]

@@ -3,7 +3,7 @@ import click
 from .decorators import requires
 from .helpers import client_from_list_or_argument, prompt_from_list
 from db.create import create_client
-from db.read import get_specific_client
+from db.read import get_specific_client, get_commercial_usernames
 from db.update import update_client
 
 
@@ -63,18 +63,26 @@ def update(ctx, client_name):
             f"""Vous n'êtes pas le commercial associé à ce client, vous ne pouvez donc pas modifier ses coordonnées.
             Veuillez contacter {associated_commercial}, qui est son représentant."""
             )
+    
+    # Here we remove contracts from the fields that can be modified as this doesn't seem like a good idea.
+    modifiable_fields = [v for k, v in client.items() if k != "contracts"]
 
     selected_field = prompt_from_list(
         "Veuillez choisir le champ que vous voudriez modifier",
-        client.values()
+        modifiable_fields
     )
     
     selected_field_name = [field_name for field_name, val in client.items() if val == selected_field][0]
 
-    if selected_field_name == "role":
-        modification = click.prompt(
-            f"Choisir le nouveau role pour {selected_client}",
-            type=click.Choice(["gestion", "commercial", "support"], case_sensitive=False)
+    # If user wants to modify the commercial associated with the client, different behavior is required.
+    if selected_field_name == "user":
+        all_commercial = get_commercial_usernames()
+        # Get rid of the current user who logically must be the commercial currently associated with this client,
+        # as they passed the permission check earlier
+        selectable_users = [v for v in all_commercial if v != user]
+        modification = prompt_from_list(
+            "Veuillez choisir le commercial que vous voudriez associé à ce client",
+            selectable_users
         )
     else:
         modification = click.prompt(
@@ -84,7 +92,15 @@ def update(ctx, client_name):
         update_client(selected_client, selected_field_name, modification)
         click.echo(f"Le {selected_field_name} de {selected_client} a été modifié.")
     except Exception as e:
-        click.echo(f"Unexpected error: {e}")   
+        click.echo(f"Unexpected error: {e}")
+
+
+@client_group.command()
+@click.argument("client_name", required=False)
+@click.pass_context
+def delete(ctx, username):
+    # Delete client permission has not been created in db and is not mentioned in cahier des charges
+    pass
 
 
 
