@@ -1,7 +1,7 @@
 from .models import Role, User, Client
 from . import get_db_session
 
-def modify_user(user, field, new_value):
+def update_user(user, field, new_value):
     with get_db_session() as db:
         # More complicated logic for changing the role
         if field == "role":
@@ -12,5 +12,5 @@ def modify_user(user, field, new_value):
 
         db.query(User).filter_by(name=user).update({field: value})
 
-def modify_role_on_user():
+def update_client():
     pass

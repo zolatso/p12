@@ -1,11 +1,11 @@
 import rich_click as click
 
 from .decorators import requires
-from .helpers import prompt_from_list
+from .helpers import prompt_from_list, user_from_list_or_argument
 from db.create import create_user
-from db.read import get_usernames, get_specific_user
+from db.read import get_specific_user
 from db.delete import delete_specific_user
-from db.update import modify_user
+from db.update import update_user
 
 
 @click.group()
@@ -18,19 +18,7 @@ def user_group(ctx):
 @click.pass_context
 @requires("read a resource")
 def show(ctx, username):
-    all_users = get_usernames()
-
-    if username:
-        if username not in all_users:
-            click.echo(f"Utilisateur '{username}' introuvable.")
-            return
-        selected_user = username
-    else:
-        selected_user = prompt_from_list(
-            "Veuillez choisir un utilisateur dans la liste de tous les utilisateurs (entrez le numéro)",
-            all_users
-        )
-        
+    selected_user = user_from_list_or_argument(username)
     user = get_specific_user(selected_user)
     click.echo(f"Nom: {user["name"]}")
     click.echo(f"Email: {user["email"]}")
@@ -65,19 +53,7 @@ def add(ctx):
 @click.pass_context
 @requires("delete user")
 def delete(ctx, username):
-    all_users = get_usernames()
-
-    if username:
-        if username not in all_users:
-            click.echo(f"Utilisateur '{username}' introuvable.")
-            return
-        selected_user = username
-    else:
-        selected_user = prompt_from_list(
-            "Veuillez choisir un utilisateur dans la liste de tous les utilisateurs (entrez le numéro)",
-            all_users
-        )
-    
+    selected_user = user_from_list_or_argument(username)
     if click.confirm(f"Est-ce que vous etes sur de vouloir supprimer '{selected_user}'?", default=False):
         # Do the deletion here
         click.echo(f"{selected_user} a été supprimé.")
@@ -94,19 +70,7 @@ def delete(ctx, username):
 @click.pass_context
 @requires("update user")
 def update(ctx, username):
-    all_users = get_usernames()
-
-    if username:
-        if username not in all_users:
-            click.echo(f"Utilisateur '{username}' introuvable.")
-            return
-        selected_user = username
-    else:
-        selected_user = prompt_from_list(
-            "Veuillez choisir un utilisateur dans la liste de tous les utilisateurs (entrez le numéro)",
-            all_users
-        )
-
+    selected_user = user_from_list_or_argument(username)
     user = get_specific_user(selected_user)
 
     selected_field = prompt_from_list(
@@ -116,7 +80,7 @@ def update(ctx, username):
     
     selected_field_name = [field_name for field_name, val in user.items() if val == selected_field][0]
 
-    if selected_field_name is "role":
+    if selected_field_name == "role":
         modification = click.prompt(
             f"Choisir le nouveau role pour {selected_user}",
             type=click.Choice(["gestion", "commercial", "support"], case_sensitive=False)
@@ -126,7 +90,7 @@ def update(ctx, username):
             f"Entrez le nouveau {selected_field_name} pour {selected_user}"
         )
     try:
-        modify_user(selected_user, selected_field_name, modification)
+        update_user(selected_user, selected_field_name, modification)
         click.echo(f"Le {selected_field_name} de {selected_user} a été modifié.")
     except Exception as e:
         click.echo(f"Unexpected error: {e}")        

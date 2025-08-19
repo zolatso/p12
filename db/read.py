@@ -20,6 +20,10 @@ def get_user_details(email : str, password : str) -> dict:
 def get_usernames():
     with get_db_session(read_only=True) as db:
         return [n for (n, ) in db.query(User.name).all()]
+    
+def get_clients():
+    with get_db_session(read_only=True) as db:
+        return [n for (n, ) in db.query(Client.fullname).all()]
 
 def get_specific_user(name):
     with get_db_session(read_only=True) as db:
@@ -30,4 +34,19 @@ def get_specific_user(name):
             "role" : object.role_obj.name.value
         }
         return user
+    
+def get_specific_client(name):
+    with get_db_session(read_only=True) as db:
+        object = db.query(Client).filter_by(fullname=name).first()
+        client = {
+            "name" : object.fullname,
+            "email" : object.email,
+            "phone" : object.phone,
+            "business_name" : object.business_name,
+            "created_at" : object.created_at,
+            "updated_at" : object.updated_at,
+            "user" : object.user.name,
+            "contracts" : object.contracts
+        }
+        return client
     
