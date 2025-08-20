@@ -92,7 +92,7 @@ def update(ctx, client_name):
         update_client(selected_client, selected_field_name, modification)
         click.echo(f"Le {selected_field_name} de {selected_client} a été modifié.")
     except Exception as e:
-        click.echo(f"Unexpected error: {e}")
+        click.ClickException(f"Unexpected error: {e}")
 
 
 @client_group.command()

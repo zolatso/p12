@@ -2,6 +2,7 @@ import click
 
 from db.read import get_contracts_for_client
 from db.create import create_contract
+from db.update import update_contract
 from .aux.decorators import requires
 from .aux.helpers import client_from_list_or_argument, get_clients, prompt_from_list, optional_prompt
 
@@ -88,7 +89,7 @@ def update(ctx, client_name):
     selected_contract = contracts[readable_contracts.index(selected_readable_contract)]
 
     # Select the fields we want to allow them to modify
-    modifiable_fields = [v for k, v in selected_contract.items() if k != "id" or "associated_commercial"]
+    modifiable_fields = [v for k, v in selected_contract.items() if k not in ("id", "associated_commercial")]
 
     selected_field = prompt_from_list(
         "Veuillez choisir le champ que vous voudriez modifier",
@@ -99,14 +100,24 @@ def update(ctx, client_name):
 
     # Different behaviors for different fields that require modification
     if selected_field_name == "created_at":
-        # logic for modifying date
-        pass
+        modification = click.prompt(
+            f"Entrez le nouveau {selected_field_name} (dd/mm/yyyy)"
+        )
     elif selected_field_name == "is_signed":
-        # logic for modifying signature status
-        pass
+        modification = click.prompt(
+            "Est-ce que le contat a été signé",
+            type=click.Choice(["Oui", "Non"], case_sensitive=False)
+        )
     else:
-        # logic for modifying amounts
-        pass
+        modification = click.prompt(
+            f"Entrez le nouveau {selected_field_name}"
+        )
+    try:
+        update_contract(selected_contract["id"], selected_field_name, modification)
+        click.echo(f"Le {selected_field_name} de {selected_client} a été modifié.")
+    except Exception as e:
+        click.ClickException(f"Unexpected error: {e}")
+    
 
 
 
