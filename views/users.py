@@ -1,7 +1,7 @@
 import rich_click as click
 
-from .decorators import requires
-from .helpers import prompt_from_list, user_from_list_or_argument
+from .aux.decorators import requires
+from .aux.helpers import prompt_from_list, user_from_list_or_argument
 from db.create import create_user
 from db.read import get_specific_user
 from db.delete import delete_specific_user

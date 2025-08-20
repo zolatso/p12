@@ -28,6 +28,12 @@ def get_commercial_usernames():
 def get_clients():
     with get_db_session(read_only=True) as db:
         return [n for (n, ) in db.query(Client.fullname).all()]
+    
+def get_clients_represented_by_commercial(name):
+    """Returns only the clients represented by the commercial passed as an arg"""
+    with get_db_session(read_only=True) as db:
+        clients = db.query(Client.fullname).join(User.clients).filter(User.name == name).all()
+        return clients
 
 def get_specific_user(name):
     with get_db_session(read_only=True) as db:
@@ -60,16 +66,22 @@ def get_contracts_for_client(name):
         contract_dicts = []
         # Cycle through each returned contract for the client and create a dictionary
         for contract in contracts:
+            # We also include the commercial associé avec ce contract (via le client)
+            associated_commercial = db.query(User.name).join(Client.user).filter(Client.fullname==name).scalar()
             contract_dict = {
+                "id" : contract.id,
                 "total_amount" : contract.total_amount,
                 "amount_remaining" : contract.amount_remaining,
+                "associated_commercial" : associated_commercial,
                 "created_at" : contract.created_at,
                 "is_signed" : contract.is_signed,
             }
             # Add the event associated with the contract if it exists
-            event = db.query(Event.name).filter_by(Event.contract_id==contract.id).first()
+            event = db.query(Event.name).filter_by(contract_id=contract.id).first()
             if event is not None:
                 contract_dict["event"] = event
             contract_dicts.append(contract_dict)
         
         return contract_dicts
+
+

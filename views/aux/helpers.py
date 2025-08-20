@@ -1,6 +1,6 @@
 import click
 
-from db.read import get_usernames, get_clients
+from db.read import get_usernames, get_clients, get_clients_represented_by_commercial
 
 def user_from_list_or_argument(username):
     """
@@ -23,13 +23,16 @@ def user_from_list_or_argument(username):
     
     return selected_user
 
-def client_from_list_or_argument(client_name):
+def client_from_list_or_argument(client_name, ctx, restrict_for_commercial=False):
     """
     User click views take an optional username argument.
     This function handles the possible cases where such an argument is supplied and where it is not,
     and returns the user that should be acted upon.
     """
-    all_clients = get_clients()
+    if restrict_for_commercial and ctx.obj["role"] == "commercial":
+        all_clients = get_clients_represented_by_commercial(ctx["user"])
+    else:
+        all_clients = get_clients()
 
     if client_name:
         if client_name not in all_clients:

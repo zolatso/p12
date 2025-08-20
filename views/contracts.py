@@ -16,17 +16,18 @@ def contract_group(ctx):
 @click.pass_context
 @requires("read a resource")
 def show(ctx, client_name):
-    selected_client = client_from_list_or_argument(client_name)
+    selected_client = client_from_list_or_argument(client_name, ctx)
     contracts = get_contracts_for_client(selected_client)
     for contract in contracts:
         click.echo("-"*50)
-        if contract["event"]: 
+        if "event" in contract: 
             title = f"Le contrat pour l'evenement: {contract["event"]}"
         else:
-            title = "Ce contrat n'a toujours pas un evenement."
+            title = "Ce contrat n'a toujours pas d'evenement."
         click.echo(title)
         click.echo(f"Valeur du contrat: {contract["total_amount"]}")
         click.echo(f"Montant non payé: {contract["amount_remaining"]}")
+        click.echo(f"Commercial associé avec ce contrat: {contract["associated_commercial"]}")
         click.echo(f"Crée le: {contract["created_at"]}")
         if contract["is_signed"]:
             is_signed = "Ce contrat a été signé"
@@ -68,48 +69,48 @@ def add(ctx):
 @click.pass_context
 @requires("update contract")
 def update(ctx, client_name):
-    selected_client = client_from_list_or_argument(client_name)
-    client = get_contracts_for_client(selected_client)
+    # The additional argument here means that if you are a commercial, you will only be shown
+    # the clients that you are a representative of
+    selected_client = client_from_list_or_argument(client_name, ctx, restrict_for_commercial=True)
+    contracts = get_contracts_for_client(selected_client)
 
-    # Extra permission required here: All members of equipe gestion can modify a contract,
-    # but among the commercial team, only the commercial associated with the contract can modify
-    user = ctx.obj["name"]
-    associated_commercial = client["user"]
-    if not user == associated_commercial:
-        raise click.ClickException(
-            f"""Vous n'êtes pas le commercial associé à ce client, vous ne pouvez donc pas modifier ses coordonnées.
-            Veuillez contacter {associated_commercial}, qui est son représentant."""
-            )
-    
-    # Here we remove contracts from the fields that can be modified as this doesn't seem like a good idea.
-    modifiable_fields = [v for k, v in client.items() if k != "contracts"]
+    # The contract dictionaries returned are not that useful as menu items. Contracts don't have an obvious title.
+    # Hence, we create a string that describes each content quite effectively. 
+    readable_contracts = []
+    for contract in contracts:
+        readable_string = f"Contrat {contract["id"]} d'un montant total de {contract["total_amount"]} crée le {contract["created_at"]}"
+        readable_contracts.append(readable_string)
+    selected_readable_contract = prompt_from_list(
+        "Veuillez choisir le contrat que vous voudriez modifier",
+        readable_contracts
+    )
+    # Given that I made the list readable, there's an extra step to get the actually selected contract
+    selected_contract = contracts[readable_contracts.index(selected_readable_contract)]
+
+    # Select the fields we want to allow them to modify
+    modifiable_fields = [v for k, v in selected_contract.items() if k != "id" or "associated_commercial"]
 
     selected_field = prompt_from_list(
         "Veuillez choisir le champ que vous voudriez modifier",
         modifiable_fields
     )
-    
-    selected_field_name = [field_name for field_name, val in client.items() if val == selected_field][0]
 
-    # If user wants to modify the commercial associated with the client, different behavior is required.
-    if selected_field_name == "user":
-        all_commercial = get_commercial_usernames()
-        # Get rid of the current user who logically must be the commercial currently associated with this client,
-        # as they passed the permission check earlier
-        selectable_users = [v for v in all_commercial if v != user]
-        modification = prompt_from_list(
-            "Veuillez choisir le commercial que vous voudriez associé à ce client",
-            selectable_users
-        )
+    selected_field_name = [field_name for field_name, val in selected_contract.items() if val == selected_field][0]
+
+    # Different behaviors for different fields that require modification
+    if selected_field_name == "created_at":
+        # logic for modifying date
+        pass
+    elif selected_field_name == "is_signed":
+        # logic for modifying signature status
+        pass
     else:
-        modification = click.prompt(
-            f"Entrez le nouveau {selected_field_name} pour {selected_client}"
-        )
-    try:
-        update_client(selected_client, selected_field_name, modification)
-        click.echo(f"Le {selected_field_name} de {selected_client} a été modifié.")
-    except Exception as e:
-        click.echo(f"Unexpected error: {e}")
+        # logic for modifying amounts
+        pass
+
+
+
+    
 
     
     

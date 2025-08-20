@@ -1,7 +1,7 @@
 import click
 
-from .decorators import requires
-from .helpers import client_from_list_or_argument, prompt_from_list
+from .aux.decorators import requires
+from .aux.helpers import client_from_list_or_argument, prompt_from_list
 from db.create import create_client
 from db.read import get_specific_client, get_commercial_usernames
 from db.update import update_client
