@@ -1,61 +1,78 @@
 import click
 
-from .decorators import requires
-from .helpers import client_from_list_or_argument, prompt_from_list
-from db.create import create_client
-from db.read import get_specific_client, get_commercial_usernames
-from db.update import update_client
+from db.read import get_contracts_for_client
+from db.create import create_contract
+from .aux.decorators import requires
+from .aux.helpers import client_from_list_or_argument, get_clients, prompt_from_list, optional_prompt
 
 
 @click.group()
 @click.pass_context
-def client_group(ctx):
+def contract_group(ctx):
     """User commands"""
 
-@client_group.command()
+@contract_group.command()
 @click.argument("client_name", required=False)
 @click.pass_context
 @requires("read a resource")
 def show(ctx, client_name):
     selected_client = client_from_list_or_argument(client_name)
-    client = get_specific_client(selected_client)
-    for k, v in client.items():
-        click.echo(f"{k}: {v}")
+    contracts = get_contracts_for_client(selected_client)
+    for contract in contracts:
+        click.echo("-"*50)
+        if contract["event"]: 
+            title = f"Le contrat pour l'evenement: {contract["event"]}"
+        else:
+            title = "Ce contrat n'a toujours pas un evenement."
+        click.echo(title)
+        click.echo(f"Valeur du contrat: {contract["total_amount"]}")
+        click.echo(f"Montant non payé: {contract["amount_remaining"]}")
+        click.echo(f"Crée le: {contract["created_at"]}")
+        if contract["is_signed"]:
+            is_signed = "Ce contrat a été signé"
+        else:
+            is_signed = "Ce contrat n'a toujours pas été signé"
+        click.echo(is_signed)
 
-@client_group.command()
+@contract_group.command()
 @click.pass_context
-@requires("create client")
+@requires("create contract")
 def add(ctx):
     user = ctx.obj["name"]
-    click.echo(f"Bienvenu, {user}. Vous allez ajouter un nouveau client.")
-    fullname = click.prompt("Nom et prenom du client")
-    email = click.prompt("Email")
-    phone = click.prompt("Numero de telephone")
-    business_name = click.prompt("Nom de l'entreprise")
-    # Creation date is manually input in case the commercial has developed relationship previously
-    created_at = click.prompt("Premier contact avec le client (dd/mm/yyyy)")
-    # For new creation of clients, updated_at can just be datetime.now so we don't send this arg
+    click.echo(f"Bonjour {user}, vous allez créer un nouveau contrat.")
+    clients = get_clients()
+    selected_client = prompt_from_list(
+            "Veuillez choisir le client pour lequel vous voudriez créer un contrat",
+            clients
+        )
+    amount = click.prompt("Montant total pour ce contrat")
+    amount_remaining = click.prompt("Montant qui n'a pas été payé")
+    created_at = optional_prompt("Date quand le contrat a été crée (laisser vide pour indiquer la date du jour)")
+    is_signed = click.prompt(
+        "Est-ce que le contat a été signé",
+        type=click.Choice(["Oui", "Non"], case_sensitive=False)
+    )
     try:
-        create_client(
-            user,
-            fullname,
-            email,
-            phone,
-            business_name,
-            created_at
+        create_contract(
+            selected_client,
+            amount,
+            amount_remaining,
+            created_at,
+            is_signed
         )
     except Exception as e:
-        click.echo(f"Unexpected error: {e}")
+        raise click.ClickException(f"Unexpected error: {e}")
 
-@client_group.command()
+@contract_group.command()
 @click.argument("client_name", required=False)
 @click.pass_context
-@requires("update client")
+@requires("update contract")
 def update(ctx, client_name):
     selected_client = client_from_list_or_argument(client_name)
-    client = get_specific_client(selected_client)
+    client = get_contracts_for_client(selected_client)
 
-    # Extra permission required here: only the commercial associated with a specific client can update them.
+    # Extra permission required here: All members of equipe gestion can modify a contract,
+    # but among the commercial team, only the commercial associated with the contract can modify
     user = ctx.obj["name"]
     associated_commercial = client["user"]
     if not user == associated_commercial:
@@ -94,18 +111,6 @@ def update(ctx, client_name):
     except Exception as e:
         click.echo(f"Unexpected error: {e}")
 
-
-@client_group.command()
-@click.argument("client_name", required=False)
-@click.pass_context
-def delete(ctx, client_name):
-    # Delete client permission has not been created in db and is not mentioned in cahier des charges
-    pass
-
-
-
-
-
-
-
+    
+    
     

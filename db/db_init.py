@@ -1,7 +1,5 @@
 from . import engine, get_db_session
 from .models import UserRoleEnum, Role, User, Base, Permission, role_permission_association
-from .create import create_user_init
-
 
 def add_roles_users_permissions():
     with get_db_session() as db:
@@ -16,7 +14,7 @@ def add_roles_users_permissions():
             can_read = Permission(name="read a resource", description="anyone")
             create_client = Permission(name="create client", description="equipe commercial")
             update_client = Permission(name="update client", description="equipe commercial")
-            update_contract = Permission(name="update contract", description="equipe commercial")
+            update_contract = Permission(name="update contract", description="equipes commercial et gestion")
             create_event = Permission(name="create event", description="equipe commercial")
             create_contract = Permission(name="create contract", description="equipe gestion")
             add_support_to_event = Permission(name="add support to event", description="equipe gestion")
@@ -44,7 +42,8 @@ def add_roles_users_permissions():
                 add_support_to_event, 
                 update_user, 
                 add_new_user, 
-                delete_user
+                delete_user,
+                update_contract,
                 ])
             support.permissions.append(can_read)
         
@@ -74,3 +73,11 @@ def add_roles_users_permissions():
             
 def create_tables():
     Base.metadata.create_all(engine)
+
+def create_user_init(db_session, username, email, plain_password, role_name):
+    role = db_session.query(Role).filter(Role.name == role_name).first()
+    if not role:
+        raise ValueError(f"Role '{role_name}' not found.")
+    user = User(name=username, email=email, role_obj=role)
+    user.set_password(plain_password)
+    db_session.add(user)

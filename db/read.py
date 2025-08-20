@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from .models import Role, User, Client
+from .models import Role, User, Client, Contract, Event
 from . import get_db_session
 from auth.exc import AuthError
 
@@ -41,16 +41,35 @@ def get_specific_user(name):
     
 def get_specific_client(name):
     with get_db_session(read_only=True) as db:
-        object = db.query(Client).filter_by(fullname=name).first()
-        client = {
-            "name" : object.fullname,
-            "email" : object.email,
-            "phone" : object.phone,
-            "business_name" : object.business_name,
-            "created_at" : object.created_at,
-            "updated_at" : object.updated_at,
-            "user" : object.user.name,
-            "contracts" : object.contracts
+        client = db.query(Client).filter_by(fullname=name).first()
+        client_dict = {
+            "name" : client.fullname,
+            "email" : client.email,
+            "phone" : client.phone,
+            "business_name" : client.business_name,
+            "created_at" : client.created_at,
+            "updated_at" : client.updated_at,
+            "user" : client.user.name,
+            "contracts" : client.contracts
         }
-        return client
+        return client_dict
     
+def get_contracts_for_client(name):
+    with get_db_session(read_only=True) as db:
+        contracts = db.query(Contract).join(Client.contracts).filter(Client.fullname==name)
+        contract_dicts = []
+        # Cycle through each returned contract for the client and create a dictionary
+        for contract in contracts:
+            contract_dict = {
+                "total_amount" : contract.total_amount,
+                "amount_remaining" : contract.amount_remaining,
+                "created_at" : contract.created_at,
+                "is_signed" : contract.is_signed,
+            }
+            # Add the event associated with the contract if it exists
+            event = db.query(Event.name).filter_by(Event.contract_id==contract.id).first()
+            if event is not None:
+                contract_dict["event"] = event
+            contract_dicts.append(contract_dict)
+        
+        return contract_dicts

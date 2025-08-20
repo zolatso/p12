@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from .models import Role, User, Client
+from .models import Role, User, Client, Contract
 from . import get_db_session
     
 def create_user(name, email, plain_password, role_name):
@@ -28,11 +28,18 @@ def create_client(user, fullname, email, phone, business_name, created_at):
         new_client = Client(**client_kwargs)
         db.add(new_client)
 
-def create_user_init(db_session, username, email, plain_password, role_name):
-    role = db_session.query(Role).filter(Role.name == role_name).first()
-    if not role:
-        raise ValueError(f"Role '{role_name}' not found.")
-    user = User(name=username, email=email, role_obj=role)
-    user.set_password(plain_password)
-    db_session.add(user)
+def create_contract(client, amount, amount_remaining, created_at, is_signed):
+    with get_db_session() as db:
+        # Get client id from name
+        client_id = db.query(Client.id).filter_by(fullname=client).scalar()
+        # Convert is_signed to boolean
+        is_signed = True if is_signed == "Oui" else False 
+        new_contract = Contract(
+            client_id=client_id,
+            total_amount=amount,
+            amount_remaining=amount_remaining,
+            created_at=created_at,
+            is_signed=is_signed
+        )
+        db.add(new_contract)
 

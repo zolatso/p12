@@ -6,6 +6,7 @@ from db.read import get_user_details
 from auth.file_actions import clear_token_file
 from .users import user_group
 from .clients import client_group
+from .contracts import contract_group
 
 
 def login_prompt():
@@ -45,3 +46,4 @@ def logout():
 
 cli_main.add_command(user_group)
 cli_main.add_command(client_group)
+cli_main.add_command(contract_group)

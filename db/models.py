@@ -125,6 +125,7 @@ class Event(Base):
     __tablename__ = "events"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
     contract_id: Mapped[int] = mapped_column(ForeignKey("contracts.id"), unique=True)
     client_contact: Mapped[str] = mapped_column(String(500), nullable=False)
     event_start: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True))
