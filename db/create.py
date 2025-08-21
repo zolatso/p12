@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from .models import Role, User, Client, Contract
+from .models import Role, User, Client, Contract, Event
 from . import get_db_session
     
 def create_user(name, email, plain_password, role_name):
@@ -43,3 +43,16 @@ def create_contract(client, amount, amount_remaining, created_at, is_signed):
         )
         db.add(new_contract)
 
+def create_event(contract_id, event_name, event_contact, event_start, event_end, location, attendees, notes):
+    with get_db_session() as db:
+        new_event = Event(
+            contract_id=contract_id,
+            name=event_name,
+            client_contact=event_contact,
+            event_start=event_start,
+            event_end=event_end,
+            location=location,
+            attendeeds=attendees,
+            notes=notes
+        )
+        db.add(new_event)

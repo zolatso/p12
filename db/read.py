@@ -83,5 +83,24 @@ def get_contracts_for_client(name):
             contract_dicts.append(contract_dict)
         
         return contract_dicts
-
-
+    
+def signed_contracts_by_my_clients(name):
+    with get_db_session(read_only=True) as db:
+        client_ids = db.query(Client.id).join(User.clients).filter(User.name == name).all()
+        all_signed_contracts = []
+        # Get the valid contracts add them to a list
+        for client_id in client_ids:
+            signed_contracts = db.query(Contract).filter_by(
+                client_id=client_id,
+                is_signed=True).all()
+            # Construct dictionaries
+            for contract in signed_contracts:
+                # Only need these three fields for display and referencing
+                contract_dict = {
+                    "id" : contract.id,
+                    "total_amount" : contract.total_amount,
+                    "created_at" : contract.created_at,
+                }
+                all_signed_contracts.append(contract_dict)
+        
+        return all_signed_contracts

@@ -1,10 +1,12 @@
-import click
+import rich_click as click
 
 from db.read import get_contracts_for_client
 from db.create import create_contract
 from db.update import update_contract
 from .aux.decorators import requires
-from .aux.helpers import client_from_list_or_argument, get_clients, prompt_from_list, optional_prompt
+from .aux.helpers import (
+    client_from_list_or_argument, get_clients, prompt_from_list, optional_prompt, select_from_readable_contracts
+)
 
 
 @click.group()
@@ -75,18 +77,10 @@ def update(ctx, client_name):
     selected_client = client_from_list_or_argument(client_name, ctx, restrict_for_commercial=True)
     contracts = get_contracts_for_client(selected_client)
 
-    # The contract dictionaries returned are not that useful as menu items. Contracts don't have an obvious title.
-    # Hence, we create a string that describes each content quite effectively. 
-    readable_contracts = []
-    for contract in contracts:
-        readable_string = f"Contrat {contract["id"]} d'un montant total de {contract["total_amount"]} crée le {contract["created_at"]}"
-        readable_contracts.append(readable_string)
-    selected_readable_contract = prompt_from_list(
-        "Veuillez choisir le contrat que vous voudriez modifier",
-        readable_contracts
-    )
-    # Given that I made the list readable, there's an extra step to get the actually selected contract
-    selected_contract = contracts[readable_contracts.index(selected_readable_contract)]
+    selected_contract = select_from_readable_contracts(
+        contracts, 
+        "Veuillez choisir le contrat que vous voudriez modifier"
+        )
 
     # Select the fields we want to allow them to modify
     modifiable_fields = [v for k, v in selected_contract.items() if k not in ("id", "associated_commercial")]
@@ -117,6 +111,11 @@ def update(ctx, client_name):
         click.echo(f"Le {selected_field_name} de {selected_client} a été modifié.")
     except Exception as e:
         click.ClickException(f"Unexpected error: {e}")
+
+@contract_group.command()
+def delete():
+    # This requirement is not specified in the cahier des charges
+    pass
     
 
 

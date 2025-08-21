@@ -16,8 +16,8 @@ def add_roles_users_permissions():
             update_client = Permission(name="update client", description="equipe commercial")
             update_contract = Permission(name="update contract", description="equipes commercial et gestion")
             create_event = Permission(name="create event", description="equipe commercial")
+            update_event = Permission(name="update event", description="equipe support")
             create_contract = Permission(name="create contract", description="equipe gestion")
-            add_support_to_event = Permission(name="add support to event", description="equipe gestion")
             update_user = Permission(name="update user", description="equipe gestion")
             add_new_user = Permission(name="create user", description="equipe gestion")
             delete_user = Permission(name="delete user", description="equipe gestion")
@@ -27,8 +27,8 @@ def add_roles_users_permissions():
                 update_client,
                 update_contract,
                 create_event,
+                update_event,
                 create_contract,
-                add_support_to_event,
                 update_user,
                 add_new_user,
                 delete_user
@@ -39,13 +39,13 @@ def add_roles_users_permissions():
             gestion.permissions.extend([
                 can_read, 
                 create_contract, 
-                add_support_to_event, 
+                update_event, 
                 update_user, 
                 add_new_user, 
                 delete_user,
                 update_contract,
                 ])
-            support.permissions.append(can_read)
+            support.permissions.extend([can_read, update_event])
         
         #Add users if they don't exist
         if db.query(User).first() is None:
@@ -81,3 +81,7 @@ def create_user_init(db_session, username, email, plain_password, role_name):
     user = User(name=username, email=email, role_obj=role)
     user.set_password(plain_password)
     db_session.add(user)
+
+def recreate_initial_db():
+    create_tables()
+    add_roles_users_permissions()

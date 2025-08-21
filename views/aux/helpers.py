@@ -72,3 +72,25 @@ def prompt_from_list(prompt_text, options):
 def optional_prompt(text):
     value = click.prompt(text, default="", show_default=False)
     return value or None
+
+def select_from_readable_contracts(contracts, msg):
+    """
+    This function addresses the fact the contract dictionaries are not useful as readable items.
+    It creates readable strings to present to the user and then returns the selected contract from the original list.
+    """
+    readable_contracts = create_title_strings_from_contracts(contracts)
+    selected_readable_contract = prompt_from_list(
+        msg,
+        readable_contracts
+    )
+    # Given that I made the list readable, there's an extra step to get the actually selected contract
+    selected_contract = contracts[readable_contracts.index(selected_readable_contract)]
+    return selected_contract
+
+def create_title_strings_from_contracts(contracts): 
+    # Helper function for the function above.
+    readable_contracts = []
+    for contract in contracts:
+        readable_string = f"Contrat {contract["id"]} d'un montant total de {contract["total_amount"]} crée le {contract["created_at"]}"
+        readable_contracts.append(readable_string)
+    return readable_contracts

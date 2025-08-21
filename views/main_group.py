@@ -7,6 +7,7 @@ from auth.file_actions import clear_token_file
 from .users import user_group
 from .clients import client_group
 from .contracts import contract_group
+from .events import event_group
 
 
 def login_prompt():
@@ -33,11 +34,11 @@ def cli_main(ctx):
             ctx.obj = data
             break
         except AuthExpiredError:
-            print("JWT has expired.")
+            click.ClickException("JWT has expired.")
         except AuthInvalidError:
-            print("Invalid JWT.")
+            click.ClickException("Invalid JWT.")
         except Exception as e:
-            print(f"Unexpected error: {e}")
+            click.ClickException(f"Unexpected error: {e}")
 
 @cli_main.command()
 def logout():
@@ -47,3 +48,4 @@ def logout():
 cli_main.add_command(user_group)
 cli_main.add_command(client_group)
 cli_main.add_command(contract_group)
+cli_main.add_command(event_group)

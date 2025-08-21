@@ -1,5 +1,5 @@
 from views.main_group import cli_main
-from db.db_init import create_tables, add_roles_users_permissions
+from db.db_init import recreate_initial_db
 
 def main():
     cli_main()
