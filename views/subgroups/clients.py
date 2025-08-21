@@ -17,7 +17,7 @@ def client_group(ctx):
 @click.pass_context
 @requires("read a resource")
 def show(ctx, client_name):
-    selected_client = client_from_list_or_argument(client_name)
+    selected_client = client_from_list_or_argument(client_name, ctx)
     client = get_specific_client(selected_client)
     for k, v in client.items():
         click.echo(f"{k}: {v}")

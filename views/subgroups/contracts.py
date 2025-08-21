@@ -89,7 +89,7 @@ def update(ctx, client_name):
         "Veuillez choisir le champ que vous voudriez modifier",
         modifiable_fields
     )
-
+    # There is a bug in this logic if for example the total_amount and amount_outstanding are the same value
     selected_field_name = [field_name for field_name, val in selected_contract.items() if val == selected_field][0]
 
     # Different behaviors for different fields that require modification

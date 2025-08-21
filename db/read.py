@@ -1,4 +1,5 @@
 from datetime import datetime
+from sqlalchemy import select
 
 from .models import Role, User, Client, Contract, Event
 from . import get_db_session
@@ -86,10 +87,11 @@ def get_contracts_for_client(name):
     
 def signed_contracts_by_my_clients(name):
     with get_db_session(read_only=True) as db:
-        client_ids = db.query(Client.id).join(User.clients).filter(User.name == name).all()
+        client_ids = db.scalars(select(Client.id).join(User.clients).filter(User.name == name))
         all_signed_contracts = []
         # Get the valid contracts add them to a list
         for client_id in client_ids:
+            # This also needs to check that there is not already an event attached
             signed_contracts = db.query(Contract).filter_by(
                 client_id=client_id,
                 is_signed=True).all()
@@ -99,8 +101,40 @@ def signed_contracts_by_my_clients(name):
                 contract_dict = {
                     "id" : contract.id,
                     "total_amount" : contract.total_amount,
-                    "created_at" : contract.created_at,
+                    "created_at" : datetime.strftime(contract.created_at, "%d/%m/%Y"),
                 }
                 all_signed_contracts.append(contract_dict)
         
         return all_signed_contracts
+
+def get_all_events():
+    with get_db_session(read_only=True) as db:
+        return db.scalars(select(Event.name))
+    
+def get_events_for_support(name):
+    with get_db_session(read_only=True) as db:
+        support_id = db.scalar(select(User.id).filter_by(name=name))
+        events = db.scalars(select(Event.name).filter_by(support_id=support_id))
+        return events
+    
+def get_all_support():
+    with get_db_session(read_only=True) as db:
+        support_role_id = db.scalar(select(Role.id).filter_by(name="support"))
+        print(support_role_id)
+        return [n for (n, ) in db.query(User.name).filter_by(role_id=support_role_id).all()]
+    
+def get_specific_event(name):
+    # This function is used when a support team member wants to modify an event.
+    # Hence, we only return the fields that they are able to modify.
+    with get_db_session(read_only=True) as db:
+        event = db.query(Event).filter_by(name=name).scalar()
+        event_dict = {
+            "name" : event.name,
+            "client_contact" : event.client_contact,
+            "event_start" : event.event_start,
+            "event_end" : event.event_end,
+            "location" : event.location,
+            "attendees" : event.attendees,
+            "notes" : event.notes
+        }
+        return event_dict

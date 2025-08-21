@@ -1,6 +1,6 @@
 import click
 
-from db.read import get_usernames, get_clients, get_clients_represented_by_commercial
+from db.read import get_usernames, get_clients, get_clients_represented_by_commercial, get_all_events
 
 def user_from_list_or_argument(username):
     """
@@ -22,6 +22,27 @@ def user_from_list_or_argument(username):
         )
     
     return selected_user
+
+def event_from_list_or_argument(event_name):
+    """
+    Event click views take an optional username argument.
+    This function handles the possible cases where such an argument is supplied and where it is not,
+    and returns the event that should be acted upon.
+    """
+    all_events = get_all_events()
+
+    if event_name:
+        if event_name not in all_events:
+            click.echo(f"Utilisateur '{event_name}' introuvable.")
+            return
+        selected_event = event_name
+    else:
+        selected_event = prompt_from_list(
+            "Veuillez choisir un utilisateur dans la liste de tous les utilisateurs (entrez le numéro)",
+            all_events
+        )
+    
+    return selected_event
 
 def client_from_list_or_argument(client_name, ctx, restrict_for_commercial=False):
     """

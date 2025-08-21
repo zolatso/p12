@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from .models import Role, User, Client, Contract
+from .models import Role, User, Client, Contract, Event
 from . import get_db_session
 
 def update_user(user, field, new_value):
@@ -37,3 +37,14 @@ def update_contract(contract_id, field, new_value):
             value = int(new_value)
 
         db.query(Contract).filter_by(id=contract_id).update({field: value})
+
+def update_event(event_name, field, new_value):
+    with get_db_session() as db:
+        event_id = db.query(Event.id).filter_by(name=event_name).scalar()
+        # For changing the user, we need to extract the correct id
+        if field == "support_id":
+            value = db.query(User.id).filter_by(name=new_value).scalar()
+        else:
+            pass
+
+        db.query(Event).filter_by(id=event_id).update({field: value})

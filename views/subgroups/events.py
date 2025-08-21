@@ -1,0 +1,130 @@
+import rich_click as click
+
+from db.read import (
+    signed_contracts_by_my_clients, 
+    get_all_events, 
+    get_events_for_support, 
+    get_all_support, 
+    get_specific_event
+)
+from db.create import create_event
+from db.update import update_event
+from .aux.decorators import requires
+from .aux.helpers import prompt_from_list, select_from_readable_contracts, event_from_list_or_argument
+
+clean_field_names = {
+    "name" : "Nom",
+    "client_contact" : "Contact pour le client",
+    "event_start" : "Debut de l'evenement",
+    "event_end" : "Fin de l'evenement",
+    "location" : "Lieu",
+    "attendees" : "Invités",
+    "notes" : "Notes"
+}
+
+@click.group()
+@click.pass_context
+def event_group(ctx):
+    """Event commands"""
+
+@event_group.command()
+@click.argument("event_name", required=False)
+@click.pass_context
+@requires("read a resource")
+def show(ctx, event_name):
+    selected_event = event_from_list_or_argument(event_name)
+    event = get_specific_event(selected_event)
+    for k, v in event.items():
+        click.echo(f"{clean_field_names[k]}: {v}")
+
+@event_group.command()
+@click.pass_context
+@requires("create event")
+def add(ctx):
+    user = ctx.obj["name"]
+    valid_contracts = signed_contracts_by_my_clients(user)
+
+    selected_contract = select_from_readable_contracts(
+        valid_contracts, 
+        "Veuillez choisir parmi les contrats signés par les clients que vous representez qui n'ont toujours pas d'evenement."
+        )
+
+    contract_id = selected_contract["id"]
+    event_name = click.prompt("Nom de l'evenement")
+    event_contact = click.prompt("Nom de le contact pour l'evenement")
+    # Check format here
+    event_start = click.prompt("Debut de l'evenement")
+    event_end = click.prompt("Fin de l'evenement")
+    location = click.prompt("Lieu")
+    attendees = click.prompt("Combien d'invités?")
+    notes = click.prompt("Notes")
+
+    try:
+        create_event(
+            contract_id,
+            event_name,
+            event_contact,
+            event_start,
+            event_end,
+            location,
+            attendees,
+            notes
+        )
+    except Exception as e:
+        raise click.ClickException(f"Unexpected error: {e}")
+    
+@event_group.command()
+@click.pass_context
+@requires("update event")
+def update(ctx):
+    # Both gestion and support are able to update events. 
+    # However, they have different capacities so we distinguish here.
+    role = ctx.obj["role"]
+    events = get_all_events() if role == "gestion" else get_events_for_support(ctx.obj["name"])
+
+    selected_event = prompt_from_list(
+        "Veuillez choisir l'evenement que vous voudriez modifier",
+        events
+    )
+
+    # Gestion can only modify the support associated with an event. Separate logic here.
+    if role == "gestion":
+        equipe_support = get_all_support()
+        modification = prompt_from_list(
+            "Veuillez choisir le membre de l'equipe support que vous voudriez associer à cet evenement",
+            equipe_support
+        )
+        selected_field_name = "support_id"
+    else:
+    # Modification for equipe support
+    # Logic is slightly different to other updates. THere maybe a redundant db call here.
+        event_to_modify = get_specific_event(selected_event)
+        modifiable_fields = [v for k, v in event_to_modify.items()]
+        selected_field = prompt_from_list(
+            "Veuillez choisir le champ que vous voudriez modifier",
+            modifiable_fields
+        )
+        # Bug in this logic, see contracts.py
+        selected_field_name = [field_name for field_name, val in event_to_modify.items() if val == selected_field][0]
+
+        if selected_field_name == "event_start" or "event_end":
+            modification = click.prompt(f"Entrez le nouveau {selected_field_name}")
+        elif selected_field_name == "attendees":
+            modification = click.prompt(f"Combien d'invités?")
+        else:
+            # For all string based inputs
+            modification = click.prompt(f"Entrez le nouveau {selected_field_name}") 
+    try:
+        update_event(selected_event, selected_field_name, modification)
+    except Exception as e:
+        click.ClickException(f"Unexpected error: {e}")  
+
+
+
+
+
+    
+
+
+
+

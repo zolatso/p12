@@ -130,7 +130,7 @@ class Event(Base):
     client_contact: Mapped[str] = mapped_column(String(500), nullable=False)
     event_start: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True))
     event_end: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True))
-    support_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    support_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=True)
     location: Mapped[str] = mapped_column(String(100), nullable=False)
     attendees: Mapped[int] = mapped_column(Integer, nullable=False)
     notes: Mapped[str] = mapped_column(String(1000), nullable=True)

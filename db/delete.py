@@ -1,4 +1,4 @@
-from .models import Role, User, Client
+from .models import User
 from . import get_db_session
 
 def delete_specific_user(name):

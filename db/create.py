@@ -49,10 +49,10 @@ def create_event(contract_id, event_name, event_contact, event_start, event_end,
             contract_id=contract_id,
             name=event_name,
             client_contact=event_contact,
-            event_start=event_start,
-            event_end=event_end,
+            event_start=datetime.strptime(event_start, "%d/%m/%Y"),
+            event_end=datetime.strptime(event_end, "%d/%m/%Y"),
             location=location,
-            attendeeds=attendees,
+            attendees=attendees,
             notes=notes
         )
         db.add(new_event)
