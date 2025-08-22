@@ -3,8 +3,8 @@ import rich_click as click
 from db.read import get_contracts_for_client
 from db.create import create_contract
 from db.update import update_contract
-from .aux.decorators import requires
-from .aux.helpers import (
+from .helper_functions.decorators import requires
+from .helper_functions.helpers import (
     client_from_list_or_argument, get_clients, prompt_from_list, optional_prompt, select_from_readable_contracts
 )
 

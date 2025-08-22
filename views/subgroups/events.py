@@ -9,8 +9,8 @@ from db.read import (
 )
 from db.create import create_event
 from db.update import update_event
-from .aux.decorators import requires
-from .aux.helpers import prompt_from_list, select_from_readable_contracts, event_from_list_or_argument
+from .helper_functions.decorators import requires
+from .helper_functions.helpers import prompt_from_list, select_from_readable_contracts, event_from_list_or_argument
 
 clean_field_names = {
     "name" : "Nom",
