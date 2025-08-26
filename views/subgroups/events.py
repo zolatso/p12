@@ -11,6 +11,7 @@ from db.create import create_event
 from db.update import update_event
 from .helper_functions.decorators import requires
 from .helper_functions.helpers import prompt_from_list, select_from_readable_contracts, event_from_list_or_argument
+from .helper_functions.validators import valid_datetime, valid_string, valid_int
 
 clean_field_names = {
     "name" : "Nom",
@@ -50,14 +51,13 @@ def add(ctx):
         )
 
     contract_id = selected_contract["id"]
-    event_name = click.prompt("Nom de l'evenement")
-    event_contact = click.prompt("Nom de le contact pour l'evenement")
-    # Check format here
-    event_start = click.prompt("Debut de l'evenement")
-    event_end = click.prompt("Fin de l'evenement")
-    location = click.prompt("Lieu")
-    attendees = click.prompt("Combien d'invités?")
-    notes = click.prompt("Notes")
+    event_name = valid_string(100, "Nom de l'evenement")
+    event_contact = valid_string(500, "Nom de le contact pour l'evenement")
+    event_start = valid_datetime("Debut de l'evenement (dd/mm/yy hh:mm)")
+    event_end = valid_datetime("Fin de l'evenement (dd/mm/yy hh:mm)")
+    location = valid_string(100, "Lieu")
+    attendees = valid_int("Combien d'invités?")
+    notes = valid_string(1000, "Notes")
 
     try:
         create_event(
@@ -71,7 +71,7 @@ def add(ctx):
             notes
         )
     except Exception as e:
-        raise click.ClickException(f"Unexpected error: {e}")
+        raise click.ClickException(f"Erreur: {e}")
     
 @event_group.command()
 @click.pass_context

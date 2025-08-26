@@ -1,6 +1,6 @@
 import datetime
 import enum
-from sqlalchemy import Integer, String, DateTime, ForeignKey, Enum, Table, Column
+from sqlalchemy import Integer, String, DateTime, ForeignKey, Enum, Table, Column, Date
 from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase
 from sqlalchemy.orm import relationship
 from argon2 import PasswordHasher
@@ -94,11 +94,10 @@ class Client(Base):
     phone: Mapped[str] = mapped_column(String(20), nullable=False)
     business_name: Mapped[str] = mapped_column(String(100), nullable=False)
     # User is going to input these two dates manually. They may not correspond to table creation/modification.
-    created_at: Mapped[datetime.datetime] = mapped_column(
-        DateTime(timezone=True))
-    updated_at: Mapped[datetime.datetime] = mapped_column(
-        DateTime(timezone=True),  
-        onupdate=datetime.datetime.now)
+    created_at: Mapped[datetime.date] = mapped_column(
+        Date())
+    updated_at: Mapped[datetime.date] = mapped_column(
+        Date())
     # this should be assigned to the user that creates the client
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
 

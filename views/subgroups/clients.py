@@ -1,7 +1,8 @@
 import rich_click as click
 
 from .helper_functions.decorators import requires
-from .helper_functions.helpers import client_from_list_or_argument, prompt_from_list
+from .helper_functions.helpers import client_from_list_or_argument, prompt_from_list, get_selected_field
+from .helper_functions.validators import valid_email, valid_phone, valid_string, valid_date
 from db.create import create_client
 from db.read import get_specific_client, get_commercial_usernames
 from db.update import update_client
@@ -28,12 +29,12 @@ def show(ctx, client_name):
 def add(ctx):
     user = ctx.obj["name"]
     click.echo(f"Bienvenu, {user}. Vous allez ajouter un nouveau client.")
-    fullname = click.prompt("Nom et prenom du client")
-    email = click.prompt("Email")
-    phone = click.prompt("Numero de telephone")
-    business_name = click.prompt("Nom de l'entreprise")
+    fullname = valid_string(100, "Prenom et nom client")
+    email = valid_email()
+    phone = valid_phone()
+    business_name = valid_string(100, "Nom de l'entreprise")
     # Creation date is manually input in case the commercial has developed relationship previously
-    created_at = click.prompt("Premier contact avec le client (dd/mm/yyyy)")
+    created_at = valid_date("Premier contact avec le client (dd/mm/yyyy)")
     # For new creation of clients, updated_at can just be datetime.now so we don't send this arg
     try:
         create_client(
@@ -65,32 +66,36 @@ def update(ctx, client_name):
             )
     
     # Here we remove contracts from the fields that can be modified as this doesn't seem like a good idea.
-    modifiable_fields = [v for k, v in client.items() if k != "contracts"]
+    modifiable_fields = {k: v for k, v in client.items() if k != "contracts"}
 
-    selected_field = prompt_from_list(
-        "Veuillez choisir le champ que vous voudriez modifier",
-        modifiable_fields
-    )
-    
-    selected_field_name = [field_name for field_name, val in client.items() if val == selected_field][0]
+    selected_field = get_selected_field(modifiable_fields)
 
-    # If user wants to modify the commercial associated with the client, different behavior is required.
-    if selected_field_name == "user":
-        all_commercial = get_commercial_usernames()
-        # Get rid of the current user who logically must be the commercial currently associated with this client,
-        # as they passed the permission check earlier
-        selectable_users = [v for v in all_commercial if v != user]
-        modification = prompt_from_list(
-            "Veuillez choisir le commercial que vous voudriez associé à ce client",
-            selectable_users
-        )
-    else:
-        modification = click.prompt(
-            f"Entrez le nouveau {selected_field_name} pour {selected_client}"
-        )
+    match selected_field:
+        case "user":
+            # If user wants to modify the commercial associated with the client, different behavior is required.
+            all_commercial = get_commercial_usernames()
+            # Get rid of the current user who logically must be the commercial currently associated with this client,
+            # as they passed the permission check earlier
+            selectable_users = [v for v in all_commercial if v != user]
+            modification = prompt_from_list(
+                "Veuillez choisir le commercial que vous voudriez associé à ce client",
+                selectable_users
+            )
+        case "fullname":
+            modification = valid_string(100, "Le nouveau nom pour le client")
+        case "phone":
+            modification = valid_phone()
+        case "email":
+            modification = valid_email()
+        case "business_name":
+            modification = valid_string(100, "Le nouveau nom pour l'entreprise du client")
+        case "created_at":
+            modification = valid_date("Date du premier contact")
+        case "updated_at":
+            modification = valid_date("Date du dernier contact") 
     try:
-        update_client(selected_client, selected_field_name, modification)
-        click.echo(f"Le {selected_field_name} de {selected_client} a été modifié.")
+        update_client(selected_client, selected_field, modification)
+        click.echo(f"Le {selected_field} de {selected_client} a été modifié.")
     except Exception as e:
         click.ClickException(f"Unexpected error: {e}")
 

@@ -90,7 +90,7 @@ def prompt_from_list(prompt_text, options):
 
     return numbered_options[choice_num]
 
-def optional_prompt(text):
+def optional_prompt(text, type):
     value = click.prompt(text, default="", show_default=False)
     return value or None
 
@@ -115,3 +115,21 @@ def create_title_strings_from_contracts(contracts):
         readable_string = f"Contrat {contract["id"]} d'un montant total de {contract["total_amount"]} crée le {contract["created_at"]}"
         readable_contracts.append(readable_string)
     return readable_contracts
+
+def get_selected_field(dictionary):
+    """
+    Takes a dictionary, creates a list of readable key, value pairs, then returns the key name of the 
+    selected dict item (which is the field that needs to be modified in a db.update request) 
+    """
+
+    readable_list = [f"{k} ({v})" for k, v in dictionary.items()]
+
+    selected_list_item = prompt_from_list(
+        "Veuillez choisir le champ que vous voudriez modifier",
+        readable_list
+    )
+
+    # Obtain just the key from the returned item
+    selected_field = selected_list_item.partition(" ")[0]
+    
+    return selected_field

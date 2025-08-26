@@ -5,8 +5,10 @@ from db.create import create_contract
 from db.update import update_contract
 from .helper_functions.decorators import requires
 from .helper_functions.helpers import (
-    client_from_list_or_argument, get_clients, prompt_from_list, optional_prompt, select_from_readable_contracts
+    client_from_list_or_argument, get_clients, prompt_from_list, optional_prompt, select_from_readable_contracts,
+    get_selected_field
 )
+from .helper_functions.validators import valid_int
 
 
 @click.group()
@@ -49,8 +51,9 @@ def add(ctx):
             "Veuillez choisir le client pour lequel vous voudriez créer un contrat",
             clients
         )
-    amount = click.prompt("Montant total pour ce contrat")
-    amount_remaining = click.prompt("Montant qui n'a pas été payé")
+    
+    amount = valid_int("Montant total pour ce contrat")
+    amount_remaining = valid_int("Montant qui n'a pas été payé")
     created_at = optional_prompt("Date quand le contrat a été crée (laisser vide pour indiquer la date du jour)")
     is_signed = click.prompt(
         "Est-ce que le contat a été signé",
@@ -83,32 +86,27 @@ def update(ctx, client_name):
         )
 
     # Select the fields we want to allow them to modify
-    modifiable_fields = [v for k, v in selected_contract.items() if k not in ("id", "associated_commercial")]
-
-    selected_field = prompt_from_list(
-        "Veuillez choisir le champ que vous voudriez modifier",
-        modifiable_fields
-    )
-    # There is a bug in this logic if for example the total_amount and amount_outstanding are the same value
-    selected_field_name = [field_name for field_name, val in selected_contract.items() if val == selected_field][0]
+    modifiable_fields = {k: v for k, v in selected_contract.items() if k not in ["id", "associated_commercial"]}
+    # Present the selection menu
+    selected_field = get_selected_field(modifiable_fields)
 
     # Different behaviors for different fields that require modification
-    if selected_field_name == "created_at":
+    if selected_field == "created_at":
         modification = click.prompt(
-            f"Entrez le nouveau {selected_field_name} (dd/mm/yyyy)"
+            f"Entrez le nouveau {selected_field} (dd/mm/yyyy)"
         )
-    elif selected_field_name == "is_signed":
+    elif selected_field == "is_signed":
         modification = click.prompt(
             "Est-ce que le contat a été signé",
             type=click.Choice(["Oui", "Non"], case_sensitive=False)
         )
     else:
         modification = click.prompt(
-            f"Entrez le nouveau {selected_field_name}"
+            f"Entrez le nouveau {selected_field}"
         )
     try:
-        update_contract(selected_contract["id"], selected_field_name, modification)
-        click.echo(f"Le {selected_field_name} de {selected_client} a été modifié.")
+        update_contract(selected_contract["id"], selected_field, modification)
+        click.echo(f"Le {selected_field} de {selected_client} a été modifié.")
     except Exception as e:
         click.ClickException(f"Unexpected error: {e}")
 
