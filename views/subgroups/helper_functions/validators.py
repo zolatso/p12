@@ -54,3 +54,12 @@ def valid_datetime(msg):
             return datetime_str
         except ValueError:
             click.echo("L'heure doit être valide et au format: dd/mm/yyyy HH:MM")
+
+def valid_int(msg):
+    while True:
+        int_string = click.prompt(msg)
+        try:
+            int(int_string)
+            return int_string
+        except ValueError:
+            click.echo("Le montant doit être un nombre entier.")
