@@ -22,7 +22,8 @@ clean_field_names = {
     "event_end" : "Fin de l'evenement",
     "location" : "Lieu",
     "attendees" : "Invités",
-    "notes" : "Notes"
+    "notes" : "Notes",
+    "support" : "Support associé"
 }
 
 @click.group()
@@ -31,11 +32,20 @@ def event_group(ctx):
     """Event commands"""
 
 @event_group.command()
-@click.option("––nom", help="Le nom de l'evenement que vous voudriez voir")
+@click.option("--nom", help="Le nom de l'evenement que vous voudriez voir")
+@click.option("--self", is_flag=True, help="Pour voir les evenements dont vous etes le support (équipe support)")
 @click.pass_context
 @requires("read a resource")
-def show(ctx, event_name):
-    selected_event = event_from_list_or_argument(event_name)
+def show(ctx, nom, self):
+    if self:
+        if ctx.obj["role"] != "support":
+            raise click.ClickException(
+                "L'option --self sur les evenements marche que pour les membres de l'equipe support"
+                )
+        selected_event = event_from_list_or_argument(nom, ctx, restrict_for_support=True)
+    else:
+        selected_event = event_from_list_or_argument(nom, ctx) 
+    
     event = get_specific_event(selected_event)
     for k, v in event.items():
         click.echo(f"{clean_field_names[k]}: {v}")
@@ -101,7 +111,8 @@ def update(ctx):
     # Modification for equipe support
     # Logic is slightly different to other updates. THere maybe a redundant db call here.
         event_to_modify = get_specific_event(selected_event)
-        selected_field = get_selected_field(event_to_modify)
+        modifiable_fields = {k: v for k, v in event_to_modify.items() if k not in ["support"]}
+        selected_field = get_selected_field(modifiable_fields)
 
         match selected_field:
             case "event_start" | "event_end":

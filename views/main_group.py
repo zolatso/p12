@@ -4,6 +4,7 @@ from auth.token import get_stored_jwt_from_file, generate_and_store_jwt, verify_
 from auth.exc import AuthError, AuthExpiredError, AuthInvalidError
 from db.read import get_user_details
 from auth.file_actions import clear_token_file
+from .subgroups.helper_functions.ansi_escape_codes import *
 from .subgroups.users import user_group
 from .subgroups.clients import client_group
 from .subgroups.contracts import contract_group
@@ -46,7 +47,7 @@ def logout():
     Logouts out the current user and removes their JWT.
     """
     clear_token_file()
-    click.echo("Logged out!")
+    click.echo(f"{BOLD}{MAGENTA}Vous vous êtes déconnecté avec succès.{RESET}")
 
 cli_main.add_command(user_group)
 cli_main.add_command(client_group)

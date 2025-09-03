@@ -4,6 +4,8 @@ from .helper_functions.ansi_escape_codes import *
 from .helper_functions.decorators import requires
 from .helper_functions.helpers import prompt_from_list, user_from_list_or_argument, get_selected_field
 from .helper_functions.validators import valid_email, valid_string, valid_password
+from .messages import confirm_delete, deletion_avoided
+
 from db.create import create_user
 from db.read import get_specific_user
 from db.delete import delete_specific_user
@@ -21,9 +23,29 @@ def user_group(ctx):
 @click.option("--self", is_flag=True, help="Pour voir vos propres coordonnées")
 @click.pass_context
 @requires("read a resource")
-def show(ctx, nom):
-    selected_user = user_from_list_or_argument(nom)
+def show(ctx, nom, equipe, self):
+    """
+    La fonctionnalité d'affichage pour le groupe d'utilisateurs. Elle propose trois options : 
+    nom (indiquez directement l'utilisateur que vous souhaitez voir), équipe (choisissez une équipe particulière 
+    à consulter) et soi (une valeur booléenne pour voir vos propres détails).
+    """
+
+    # Check if user wants to see their own details
+    if not self:
+        # Check if team option has been set/passed
+        if equipe and equipe not in ['commercial','support','gestion']:
+            raise click.ClickException(
+            f"L'équipe {equipe} n'existe pas. Choisir parmi 'gestion', 'support', et 'commercial'."
+        )
+        if not equipe:
+            equipe = "all"
+        selected_user = user_from_list_or_argument(nom, equipe)
+    else:
+        selected_user = ctx.obj["name"]
+
     user = get_specific_user(selected_user)
+
+    click.echo(f"{BOLD}{CYAN}{'-'*30}{RESET}")
     click.echo(f"{BOLD}{CYAN}🧑 Informations sur l’employé 🧑{RESET}")
     click.echo(f"{MAGENTA}Nom: {BOLD}{user['name']}{RESET}")
     click.echo(f"{YELLOW}Mail: {BOLD}{user['email']}{RESET}")
@@ -34,6 +56,10 @@ def show(ctx, nom):
 @click.pass_context
 @requires("create user")
 def add(ctx):
+    """
+    Permet la création d'un nouvel utilisateur. 
+    Vérifie les autorisations, puis demande les informations nécessaires.
+    """
     user = ctx.obj["name"]
     click.echo(f"Bonjour {user}, vous allez créer un nouveau collaborateur.")
     name = valid_string(50, "Prénom et nom du collaborateur")
@@ -58,8 +84,10 @@ def add(ctx):
 @click.pass_context
 @requires("delete user")
 def delete(ctx, nom):
-    selected_user = user_from_list_or_argument(nom)
-    if click.confirm(f"Est-ce que vous etes sur de vouloir supprimer '{selected_user}'?", default=False):
+    equipe = "all"
+    selected_user = user_from_list_or_argument(nom, equipe)
+
+    if click.confirm(confirm_delete(selected_user), default=False):
         # Do the deletion here
         click.echo(f"{selected_user} a été supprimé.")
         # Should be in a try
@@ -68,14 +96,19 @@ def delete(ctx, nom):
         except Exception as e:
             click.ClickException(f"Erreur: {e}")
     else:
-        click.echo(f"{selected_user} n'a pas été supprimé.")
+        click.echo(deletion_avoided(selected_user))
 
 @user_group.command()
 @click.option("--nom", help="Le nom de l'utilisateur que vous voudriez supprimer")
 @click.pass_context
 @requires("update user")
 def update(ctx, nom):
-    selected_user = user_from_list_or_argument(nom)
+    """
+    Permet de modifier un utilisateur. Prend une option : nom, pour définir l'utilisateur spécifique à modifier.
+    Sinon, affiche une liste de tous les utilisateurs. Vérifie les autorisations et valide les entrées.
+    """
+    equipe = "all"
+    selected_user = user_from_list_or_argument(nom, equipe)
     user = get_specific_user(selected_user)
     selected_field = get_selected_field(user)
 

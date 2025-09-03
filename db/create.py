@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 
 from .models import Role, User, Client, Contract, Event
 from . import get_db_session
@@ -54,7 +54,7 @@ def create_contract(client, amount, amount_remaining, created_at, is_signed):
             client_id=client_id,
             total_amount=amount,
             amount_remaining=amount_remaining,
-            created_at=created_at,
+            created_at=datetime.strptime(created_at, "%d/%m/%Y"),
             is_signed=is_signed
         )
         db.add(new_contract)
@@ -69,8 +69,8 @@ def create_event(contract_id, event_name, event_contact, event_start, event_end,
             contract_id=contract_id,
             name=event_name,
             client_contact=event_contact,
-            event_start=datetime.strptime(event_start, "%d/%m/%Y"),
-            event_end=datetime.strptime(event_end, "%d/%m/%Y"),
+            event_start=datetime.strptime(event_start, "%d/%m/%Y %H:%M"),
+            event_end=datetime.strptime(event_end, "%d/%m/%Y %H:%M"),
             location=location,
             attendees=attendees,
             notes=notes

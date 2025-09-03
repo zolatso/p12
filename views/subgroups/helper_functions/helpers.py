@@ -1,18 +1,22 @@
 import click
 
-from db.read import get_usernames, get_clients, get_clients_represented_by_commercial, get_all_events
+from db.read import (
+    get_usernames, get_clients, get_clients_represented_by_commercial, get_all_events, get_equipe_usernames,
+    get_events_for_support
+)
 
-def user_from_list_or_argument(username):
+def user_from_list_or_argument(username, equipe):
     """
     User click views take an optional username argument.
     This function handles the possible cases where such an argument is supplied and where it is not,
     and returns the user that should be acted upon.
     """
-    all_users = get_usernames()
+    equipes = ['gestion','commercial','support']
+    all_users = get_usernames() if equipe not in equipes else get_equipe_usernames(equipe)
 
     if username:
         if username not in all_users:
-            click.echo(f"Utilisateur '{username}' introuvable.")
+            click.ClickException(f"Utilisateur '{username}' introuvable.")
             return
         selected_user = username
     else:
@@ -23,13 +27,16 @@ def user_from_list_or_argument(username):
     
     return selected_user
 
-def event_from_list_or_argument(event_name):
+def event_from_list_or_argument(event_name, ctx, restrict_for_support=False):
     """
     Event click views take an optional username argument.
     This function handles the possible cases where such an argument is supplied and where it is not,
     and returns the event that should be acted upon.
     """
-    all_events = get_all_events()
+    if restrict_for_support:
+        all_events = get_events_for_support(ctx.obj["name"])
+    else:
+        all_events = get_all_events()
 
     if event_name:
         if event_name not in all_events:
@@ -38,7 +45,7 @@ def event_from_list_or_argument(event_name):
         selected_event = event_name
     else:
         selected_event = prompt_from_list(
-            "Veuillez choisir un utilisateur dans la liste de tous les utilisateurs (entrez le numéro)",
+            "Veuillez choisir l'evenement que vous voudriez voir (entrez le numéro)",
             all_events
         )
     
@@ -51,7 +58,7 @@ def client_from_list_or_argument(client_name, ctx, restrict_for_commercial=False
     and returns the user that should be acted upon.
     """
     if restrict_for_commercial and ctx.obj["role"] == "commercial":
-        all_clients = get_clients_represented_by_commercial(ctx["user"])
+        all_clients = get_clients_represented_by_commercial(ctx.obj["name"])
     else:
         all_clients = get_clients()
 

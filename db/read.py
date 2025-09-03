@@ -22,9 +22,9 @@ def get_usernames():
     with get_db_session(read_only=True) as db:
         return [n for (n, ) in db.query(User.name).all()]
     
-def get_commercial_usernames():
+def get_equipe_usernames(equipe):
     with get_db_session(read_only=True) as db:
-        return [n for (n, ) in db.query(User.name).join(User.role_obj).filter(Role.name == "commercial")]
+        return [n for (n, ) in db.query(User.name).join(User.role_obj).filter(Role.name == equipe)]
     
 def get_clients():
     with get_db_session(read_only=True) as db:
@@ -33,7 +33,7 @@ def get_clients():
 def get_clients_represented_by_commercial(name):
     """Returns only the clients represented by the commercial passed as an arg"""
     with get_db_session(read_only=True) as db:
-        clients = db.query(Client.fullname).join(User.clients).filter(User.name == name).all()
+        clients = db.scalars(select(Client.fullname).join(User.clients).filter(User.name == name))
         return clients
 
 def get_specific_user(name):
@@ -57,7 +57,7 @@ def get_specific_client(name):
             "created_at" : client.created_at,
             "updated_at" : client.updated_at,
             "user" : client.user.name,
-            "contracts" : client.contracts
+            "contracts" : [f"Contrat crée le {contract.created_at}" for contract in client.contracts]
         }
         return client_dict
     
@@ -78,7 +78,7 @@ def get_contracts_for_client(name):
                 "is_signed" : contract.is_signed,
             }
             # Add the event associated with the contract if it exists
-            event = db.query(Event.name).filter_by(contract_id=contract.id).first()
+            event = db.scalar(select(Event.name).filter_by(contract_id=contract.id))
             if event is not None:
                 contract_dict["event"] = event
             contract_dicts.append(contract_dict)
@@ -128,6 +128,7 @@ def get_specific_event(name):
     # Hence, we only return the fields that they are able to modify.
     with get_db_session(read_only=True) as db:
         event = db.query(Event).filter_by(name=name).scalar()
+        support = db.scalar(select(User).filter_by(id=event.support_id))
         event_dict = {
             "name" : event.name,
             "client_contact" : event.client_contact,
@@ -135,6 +136,8 @@ def get_specific_event(name):
             "event_end" : event.event_end,
             "location" : event.location,
             "attendees" : event.attendees,
-            "notes" : event.notes
+            "notes" : event.notes,
         }
+        if support:
+            event_dict["support"] = support.name
         return event_dict

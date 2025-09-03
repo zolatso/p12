@@ -4,8 +4,19 @@ from .helper_functions.decorators import requires
 from .helper_functions.helpers import client_from_list_or_argument, prompt_from_list, get_selected_field
 from .helper_functions.validators import valid_email, valid_phone, valid_string, valid_date
 from db.create import create_client
-from db.read import get_specific_client, get_commercial_usernames
+from db.read import get_specific_client, get_equipe_usernames
 from db.update import update_client
+
+clean_field_names = {
+    "name" : "Nom",
+    "email" : "Mail",
+    "phone" : "Phone",
+    "business_name" : "Nom de l'entreprise",
+    "created_at" : "Date de creation",
+    "updated_at" : "Dernier mise à jour",
+    "user" : "Commercial associé",
+    "contracts" : "Contracts"
+}
 
 
 @click.group()
@@ -18,11 +29,21 @@ def client_group(ctx):
 @click.option("--self", is_flag=True, help="Pour voir les clients que vous representez (équipe commercial)")
 @click.pass_context
 @requires("read a resource")
-def show(ctx, nom):
-    selected_client = client_from_list_or_argument(nom, ctx)
+def show(ctx, nom, self):
+    # If self is activated, we use the specific functionality of only returning selected clients
+    if self:
+        if ctx.obj["role"] != "commercial":
+            raise click.ClickException(
+                "L'option --self sur les clients marche que pour les membres de l'equipe commercial"
+                )
+        selected_client = client_from_list_or_argument(nom, ctx, restrict_for_commercial=True)
+    else:
+        selected_client = client_from_list_or_argument(nom, ctx)
+    
     client = get_specific_client(selected_client)
+
     for k, v in client.items():
-        click.echo(f"{k}: {v}")
+        click.echo(f"{clean_field_names[k]}: {v}")
 
 @client_group.command()
 @click.pass_context
@@ -53,18 +74,10 @@ def add(ctx):
 @click.option("--nom", help="Le nom du client que vous voudriez modifier")
 @click.pass_context
 @requires("update client")
-def update(ctx, client_name):
-    selected_client = client_from_list_or_argument(client_name)
+def update(ctx, nom):
+    # This only shows the clients represented by the specific commercial
+    selected_client = client_from_list_or_argument(nom, ctx, restrict_for_commercial=True)
     client = get_specific_client(selected_client)
-
-    # Extra permission required here: only the commercial associated with a specific client can update them.
-    user = ctx.obj["name"]
-    associated_commercial = client["user"]
-    if not user == associated_commercial:
-        raise click.ClickException(
-            f"""Vous n'êtes pas le commercial associé à ce client, vous ne pouvez donc pas modifier ses coordonnées.
-            Veuillez contacter {associated_commercial}, qui est son représentant."""
-            )
     
     # Here we remove contracts from the fields that can be modified as this doesn't seem like a good idea.
     modifiable_fields = {k: v for k, v in client.items() if k != "contracts"}
@@ -74,7 +87,7 @@ def update(ctx, client_name):
     match selected_field:
         case "user":
             # If user wants to modify the commercial associated with the client, different behavior is required.
-            all_commercial = get_commercial_usernames()
+            all_commercial = get_equipe_usernames("commercial")
             # Get rid of the current user who logically must be the commercial currently associated with this client,
             # as they passed the permission check earlier
             selectable_users = [v for v in all_commercial if v != user]

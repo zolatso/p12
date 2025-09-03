@@ -1,6 +1,6 @@
 import re
 import rich_click as click
-from datetime import datetime 
+from datetime import datetime, date
 
 email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
 password_regex = r'^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$'
@@ -37,7 +37,9 @@ def valid_phone():
 
 def valid_date(msg, optional=False):
     while True:
-        date_str = click.prompt(msg) if not optional else click.prompt(click.prompt(msg, default="", show_default=False))
+        date_str = click.prompt(msg, default='', show_default=False)
+        if optional and date_str == "":
+            date_str = date.today().strftime("%d/%m/%Y")
         try:
             # Try parsing the input as DD/MM/YYYY
             datetime.strptime(date_str, "%d/%m/%Y")

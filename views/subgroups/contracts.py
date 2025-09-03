@@ -13,7 +13,8 @@ from .helper_functions.validators import valid_int, valid_date
 clean_field_names = {
     "total_amount" : "montant total",
     "amount_remaining" : "montant qui reste",
-    "created_at" : "date de création"
+    "created_at" : "date de création",
+    "is_signed" : "a été signé"
 }
 
 
@@ -114,7 +115,7 @@ def update(ctx, nom):
                 )
     try:
         update_contract(selected_contract["id"], selected_field, modification)
-        click.echo(f"Le {selected_field} de {selected_client} a été modifié.")
+        click.echo(f"Le {clean_field_names["selected_field"]} de {selected_client} a été modifié.")
     except Exception as e:
         click.ClickException(f"Unexpected error: {e}")
 
