@@ -10,7 +10,9 @@ from db.read import (
 from db.create import create_event
 from db.update import update_event
 from .helper_functions.decorators import requires
-from .helper_functions.helpers import prompt_from_list, select_from_readable_contracts, event_from_list_or_argument
+from .helper_functions.helpers import (
+    prompt_from_list, select_from_readable_contracts, event_from_list_or_argument, get_selected_field
+)
 from .helper_functions.validators import valid_datetime, valid_string, valid_int
 
 clean_field_names = {
@@ -29,7 +31,7 @@ def event_group(ctx):
     """Event commands"""
 
 @event_group.command()
-@click.argument("event_name", required=False)
+@click.option("––nom", help="Le nom de l'evenement que vous voudriez voir")
 @click.pass_context
 @requires("read a resource")
 def show(ctx, event_name):
@@ -99,25 +101,23 @@ def update(ctx):
     # Modification for equipe support
     # Logic is slightly different to other updates. THere maybe a redundant db call here.
         event_to_modify = get_specific_event(selected_event)
-        modifiable_fields = [v for k, v in event_to_modify.items()]
-        selected_field = prompt_from_list(
-            "Veuillez choisir le champ que vous voudriez modifier",
-            modifiable_fields
-        )
-        # Bug in this logic, see contracts.py
-        selected_field_name = [field_name for field_name, val in event_to_modify.items() if val == selected_field][0]
+        selected_field = get_selected_field(event_to_modify)
 
-        if selected_field_name == "event_start" or "event_end":
-            modification = click.prompt(f"Entrez le nouveau {selected_field_name}")
-        elif selected_field_name == "attendees":
-            modification = click.prompt(f"Combien d'invités?")
-        else:
-            # For all string based inputs
-            modification = click.prompt(f"Entrez le nouveau {selected_field_name}") 
+        match selected_field:
+            case "event_start" | "event_end":
+                modification = valid_datetime(
+                    f"Entrez le nouveau {clean_field_names[selected_field].lower()}"
+                )
+            case "attendees":
+                modification = valid_int("Combien d'invités ?")
+            case "name" | "client_contact" | "location" | "notes":
+                modification = valid_string(
+                    f"Entrez le nouveau {clean_field_names[selected_field].lower()}"
+                )
     try:
         update_event(selected_event, selected_field_name, modification)
     except Exception as e:
-        click.ClickException(f"Unexpected error: {e}")  
+        click.ClickException(f"Erreur: {e}")  
 
 
 

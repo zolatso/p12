@@ -42,6 +42,9 @@ def cli_main(ctx):
 
 @cli_main.command()
 def logout():
+    """
+    Logouts out the current user and removes their JWT.
+    """
     clear_token_file()
     click.echo("Logged out!")
 

@@ -90,9 +90,9 @@ def prompt_from_list(prompt_text, options):
 
     return numbered_options[choice_num]
 
-def optional_prompt(text):
-    value = click.prompt(text, default="", show_default=False)
-    return value or None
+# def optional_prompt(text):
+#     value = click.prompt(text, default="", show_default=False)
+#     return value or None
 
 def select_from_readable_contracts(contracts, msg):
     """

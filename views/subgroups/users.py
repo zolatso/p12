@@ -1,5 +1,6 @@
 import rich_click as click
 
+from .helper_functions.ansi_escape_codes import *
 from .helper_functions.decorators import requires
 from .helper_functions.helpers import prompt_from_list, user_from_list_or_argument, get_selected_field
 from .helper_functions.validators import valid_email, valid_string, valid_password
@@ -15,16 +16,19 @@ def user_group(ctx):
     """User commands"""
 
 @user_group.command()
-@click.argument("username", required=False)
+@click.option("--nom", help="Le nom de l'utilisateur que vous voudriez voir")
+@click.option("--equipe", help="Le nom de l'equipe dont vous voudriez voir les membres")
+@click.option("--self", is_flag=True, help="Pour voir vos propres coordonnées")
 @click.pass_context
 @requires("read a resource")
-def show(ctx, username):
-    selected_user = user_from_list_or_argument(username)
+def show(ctx, nom):
+    selected_user = user_from_list_or_argument(nom)
     user = get_specific_user(selected_user)
-    click.echo(f"Nom: {user["name"]}")
-    click.echo(f"Email: {user["email"]}")
-    click.echo(f"Role: {user["role"]}")
-    
+    click.echo(f"{BOLD}{CYAN}🧑 Informations sur l’employé 🧑{RESET}")
+    click.echo(f"{MAGENTA}Nom: {BOLD}{user['name']}{RESET}")
+    click.echo(f"{YELLOW}Mail: {BOLD}{user['email']}{RESET}")
+    click.echo(f"{GREEN}Role: {BOLD}{user['role']}{RESET}")
+    click.echo(f"{BOLD}{CYAN}{'-'*30}{RESET}")
 
 @user_group.command()
 @click.pass_context
@@ -50,11 +54,11 @@ def add(ctx):
         click.ClickException(f"Erreur: {e}")
     
 @user_group.command()
-@click.argument("username", required=False)
+@click.option("--nom", help="Le nom de l'utilisateur que vous voudriez supprimer")
 @click.pass_context
 @requires("delete user")
-def delete(ctx, username):
-    selected_user = user_from_list_or_argument(username)
+def delete(ctx, nom):
+    selected_user = user_from_list_or_argument(nom)
     if click.confirm(f"Est-ce que vous etes sur de vouloir supprimer '{selected_user}'?", default=False):
         # Do the deletion here
         click.echo(f"{selected_user} a été supprimé.")
@@ -67,11 +71,11 @@ def delete(ctx, username):
         click.echo(f"{selected_user} n'a pas été supprimé.")
 
 @user_group.command()
-@click.argument("username", required=False)
+@click.option("--nom", help="Le nom de l'utilisateur que vous voudriez supprimer")
 @click.pass_context
 @requires("update user")
-def update(ctx, username):
-    selected_user = user_from_list_or_argument(username)
+def update(ctx, nom):
+    selected_user = user_from_list_or_argument(nom)
     user = get_specific_user(selected_user)
     selected_field = get_selected_field(user)
 

@@ -5,23 +5,29 @@ from db.create import create_contract
 from db.update import update_contract
 from .helper_functions.decorators import requires
 from .helper_functions.helpers import (
-    client_from_list_or_argument, get_clients, prompt_from_list, optional_prompt, select_from_readable_contracts,
+    client_from_list_or_argument, get_clients, prompt_from_list, select_from_readable_contracts,
     get_selected_field
 )
-from .helper_functions.validators import valid_int
+from .helper_functions.validators import valid_int, valid_date
+
+clean_field_names = {
+    "total_amount" : "montant total",
+    "amount_remaining" : "montant qui reste",
+    "created_at" : "date de création"
+}
 
 
 @click.group()
 @click.pass_context
 def contract_group(ctx):
-    """User commands"""
+    """Contract commands"""
 
 @contract_group.command()
-@click.argument("client_name", required=False)
+@click.option("--nom", help="Le nom du client pour lequel vous voudriez voir les contrats")
 @click.pass_context
 @requires("read a resource")
-def show(ctx, client_name):
-    selected_client = client_from_list_or_argument(client_name, ctx)
+def show(ctx, nom):
+    selected_client = client_from_list_or_argument(nom, ctx)
     contracts = get_contracts_for_client(selected_client)
     for contract in contracts:
         click.echo("-"*50)
@@ -54,7 +60,8 @@ def add(ctx):
     
     amount = valid_int("Montant total pour ce contrat")
     amount_remaining = valid_int("Montant qui n'a pas été payé")
-    created_at = optional_prompt("Date quand le contrat a été crée (laisser vide pour indiquer la date du jour)")
+    # True argument in the below indicates it is optional
+    created_at = valid_date("Date quand le contrat a été crée (laisser vide pour indiquer la date du jour)", optional=True)
     is_signed = click.prompt(
         "Est-ce que le contat a été signé",
         type=click.Choice(["Oui", "Non"], case_sensitive=False)
@@ -71,13 +78,13 @@ def add(ctx):
         raise click.ClickException(f"Unexpected error: {e}")
 
 @contract_group.command()
-@click.argument("client_name", required=False)
+@click.option("--nom", help="Le nom du client pour lequel vous voudriez modifier un contrat")
 @click.pass_context
 @requires("update contract")
-def update(ctx, client_name):
+def update(ctx, nom):
     # The additional argument here means that if you are a commercial, you will only be shown
     # the clients that you are a representative of
-    selected_client = client_from_list_or_argument(client_name, ctx, restrict_for_commercial=True)
+    selected_client = client_from_list_or_argument(nom, ctx, restrict_for_commercial=True)
     contracts = get_contracts_for_client(selected_client)
 
     selected_contract = select_from_readable_contracts(
@@ -91,19 +98,20 @@ def update(ctx, client_name):
     selected_field = get_selected_field(modifiable_fields)
 
     # Different behaviors for different fields that require modification
-    if selected_field == "created_at":
-        modification = click.prompt(
-            f"Entrez le nouveau {selected_field} (dd/mm/yyyy)"
-        )
-    elif selected_field == "is_signed":
-        modification = click.prompt(
-            "Est-ce que le contat a été signé",
-            type=click.Choice(["Oui", "Non"], case_sensitive=False)
-        )
-    else:
-        modification = click.prompt(
-            f"Entrez le nouveau {selected_field}"
-        )
+    match selected_field:
+        case "created_at":
+            modification = valid_date(
+                f"Entrez le nouveau {clean_field_names[selected_field]} (dd/mm/yyyy)"
+                )
+        case "is_signed":
+            modification = click.prompt(
+                "Est-ce que le contrat a été signé",
+                type=click.Choice(["Oui", "Non"], case_sensitive=False)
+            )
+        case "total_amount" | "amount_remaining":
+            modification = valid_int(
+                f"Entrez le nouveau {clean_field_names[selected_field]}"
+                )
     try:
         update_contract(selected_contract["id"], selected_field, modification)
         click.echo(f"Le {selected_field} de {selected_client} a été modifié.")

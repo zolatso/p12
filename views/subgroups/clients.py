@@ -11,14 +11,15 @@ from db.update import update_client
 @click.group()
 @click.pass_context
 def client_group(ctx):
-    """User commands"""
+    """Client commands"""
 
 @client_group.command()
-@click.argument("client_name", required=False)
+@click.option("--nom", help="Le nom du client que vous voudriez voir")
+@click.option("--self", is_flag=True, help="Pour voir les clients que vous representez (équipe commercial)")
 @click.pass_context
 @requires("read a resource")
-def show(ctx, client_name):
-    selected_client = client_from_list_or_argument(client_name, ctx)
+def show(ctx, nom):
+    selected_client = client_from_list_or_argument(nom, ctx)
     client = get_specific_client(selected_client)
     for k, v in client.items():
         click.echo(f"{k}: {v}")
@@ -49,7 +50,7 @@ def add(ctx):
         click.echo(f"Unexpected error: {e}")
 
 @client_group.command()
-@click.argument("client_name", required=False)
+@click.option("--nom", help="Le nom du client que vous voudriez modifier")
 @click.pass_context
 @requires("update client")
 def update(ctx, client_name):

@@ -35,9 +35,9 @@ def valid_phone():
             return phone
         click.echo("Le numero de telephone n'est pas valide. Veuillez réessayer.")
 
-def valid_date(msg):
+def valid_date(msg, optional=False):
     while True:
-        date_str = click.prompt(msg)
+        date_str = click.prompt(msg) if not optional else click.prompt(click.prompt(msg, default="", show_default=False))
         try:
             # Try parsing the input as DD/MM/YYYY
             datetime.strptime(date_str, "%d/%m/%Y")
@@ -49,7 +49,7 @@ def valid_datetime(msg):
     while True:
         datetime_str = click.prompt(msg)
         try:
-            # Try parsing the input as DD/MM/YYYY
+            # Try parsing the input as DD/MM/YYYY HH;MM
             datetime.strptime(datetime_str, "%d/%m/%Y %H:%M")
             return datetime_str
         except ValueError:
