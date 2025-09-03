@@ -1,7 +1,7 @@
 import click
 from functools import wraps
 
-from .errors import perm_denied
+from messages.errors import perm_denied
 
 def requires(permission):
     """Decorator to enforce a required permission on a Click command."""

@@ -9,11 +9,11 @@ from db.read import (
 )
 from db.create import create_event
 from db.update import update_event
-from .helper_functions.decorators import requires
-from .helper_functions.helpers import (
+from ..helper_functions.decorators import requires
+from ..helper_functions.helpers import (
     prompt_from_list, select_from_readable_contracts, event_from_list_or_argument, get_selected_field
 )
-from .helper_functions.validators import valid_datetime, valid_string, valid_int
+from ..helper_functions.validators import valid_datetime, valid_string, valid_int
 
 clean_field_names = {
     "name" : "Nom",

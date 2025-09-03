@@ -3,12 +3,12 @@ import rich_click as click
 from db.read import get_contracts_for_client
 from db.create import create_contract
 from db.update import update_contract
-from .helper_functions.decorators import requires
-from .helper_functions.helpers import (
+from ..helper_functions.decorators import requires
+from ..helper_functions.helpers import (
     client_from_list_or_argument, get_clients, prompt_from_list, select_from_readable_contracts,
     get_selected_field
 )
-from .helper_functions.validators import valid_int, valid_date
+from ..helper_functions.validators import valid_int, valid_date
 
 clean_field_names = {
     "total_amount" : "montant total",

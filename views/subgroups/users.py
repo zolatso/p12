@@ -1,11 +1,11 @@
 import rich_click as click
 
-from .helper_functions.ansi_escape_codes import *
-from .helper_functions.decorators import requires
-from .helper_functions.helpers import prompt_from_list, user_from_list_or_argument, get_selected_field
-from .helper_functions.validators import valid_email, valid_string, valid_password
-from .messages import confirm_delete, deletion_avoided
+from ..helper_functions.decorators import requires
+from ..helper_functions.helpers import prompt_from_list, user_from_list_or_argument, get_selected_field
+from ..helper_functions.validators import valid_email, valid_string, valid_password
 
+from messages.messages import confirm_delete, deletion_avoided, display_user, create_welcome
+from messages.errors import wrong_team
 from db.create import create_user
 from db.read import get_specific_user
 from db.delete import delete_specific_user
@@ -34,9 +34,7 @@ def show(ctx, nom, equipe, self):
     if not self:
         # Check if team option has been set/passed
         if equipe and equipe not in ['commercial','support','gestion']:
-            raise click.ClickException(
-            f"L'équipe {equipe} n'existe pas. Choisir parmi 'gestion', 'support', et 'commercial'."
-        )
+            raise click.ClickException(wrong_team(equipe))
         if not equipe:
             equipe = "all"
         selected_user = user_from_list_or_argument(nom, equipe)
@@ -45,12 +43,9 @@ def show(ctx, nom, equipe, self):
 
     user = get_specific_user(selected_user)
 
-    click.echo(f"{BOLD}{CYAN}{'-'*30}{RESET}")
-    click.echo(f"{BOLD}{CYAN}🧑 Informations sur l’employé 🧑{RESET}")
-    click.echo(f"{MAGENTA}Nom: {BOLD}{user['name']}{RESET}")
-    click.echo(f"{YELLOW}Mail: {BOLD}{user['email']}{RESET}")
-    click.echo(f"{GREEN}Role: {BOLD}{user['role']}{RESET}")
-    click.echo(f"{BOLD}{CYAN}{'-'*30}{RESET}")
+    display_user(user['name'], user['email'], user['role'])
+
+
 
 @user_group.command()
 @click.pass_context
@@ -61,7 +56,8 @@ def add(ctx):
     Vérifie les autorisations, puis demande les informations nécessaires.
     """
     user = ctx.obj["name"]
-    click.echo(f"Bonjour {user}, vous allez créer un nouveau collaborateur.")
+    click.echo(create_welcome(user, "collaborateur"))
+
     name = valid_string(50, "Prénom et nom du collaborateur")
     email = valid_email()
     password = valid_password()

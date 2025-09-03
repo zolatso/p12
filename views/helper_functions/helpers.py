@@ -91,7 +91,7 @@ def prompt_from_list(prompt_text, options):
         click.echo(f"{number}. {option}")
 
     choice_num = click.prompt(
-        "Enter the number of your choice",
+        "Quelle option choisissez-vous ?",
         type=click.Choice(numbered_options.keys(), case_sensitive=False)
     )
 

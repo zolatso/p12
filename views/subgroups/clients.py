@@ -1,8 +1,8 @@
 import rich_click as click
 
-from .helper_functions.decorators import requires
-from .helper_functions.helpers import client_from_list_or_argument, prompt_from_list, get_selected_field
-from .helper_functions.validators import valid_email, valid_phone, valid_string, valid_date
+from ..helper_functions.decorators import requires
+from ..helper_functions.helpers import client_from_list_or_argument, prompt_from_list, get_selected_field
+from ..helper_functions.validators import valid_email, valid_phone, valid_string, valid_date
 from db.create import create_client
 from db.read import get_specific_client, get_equipe_usernames
 from db.update import update_client
