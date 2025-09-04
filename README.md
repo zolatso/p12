@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-1. **Python** (3.8 or higher recommended)  
+1. **Python** (3.10 or higher required)  
 2. **MySQL** (installed locally)  
 3. **Virtual environment with dependencies**  
 
