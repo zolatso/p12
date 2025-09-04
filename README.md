@@ -15,8 +15,6 @@ venv\Scripts\activate      # On Windows
 
 pip install -r requirements.txt
 
-Sure, here's that content formatted for a **README.md** file. I've used standard markdown to make it clean, easy to read, and ready to drop in.
-
 ## Installation & Setup
 
 -----
