@@ -4,6 +4,9 @@ from db.read import (
     get_usernames, get_clients, get_clients_represented_by_commercial, get_all_events, get_equipe_usernames,
     get_events_for_support
 )
+from messages.messages import (
+    list_options, choose_msg
+)
 
 def user_from_list_or_argument(username, equipe):
     """
@@ -21,7 +24,7 @@ def user_from_list_or_argument(username, equipe):
         selected_user = username
     else:
         selected_user = prompt_from_list(
-            "Veuillez choisir un utilisateur dans la liste de tous les utilisateurs (entrez le numéro)",
+            choose_msg("employé"),
             all_users
         )
     
@@ -33,20 +36,20 @@ def event_from_list_or_argument(event_name, ctx, restrict_for_support=False):
     This function handles the possible cases where such an argument is supplied and where it is not,
     and returns the event that should be acted upon.
     """
-    if restrict_for_support:
-        all_events = get_events_for_support(ctx.obj["name"])
-    else:
-        all_events = get_all_events()
+    all_events = get_all_events()
 
     if event_name:
         if event_name not in all_events:
-            click.echo(f"Utilisateur '{event_name}' introuvable.")
-            return
+            raise click.ClickException(f"Evenement '{event_name}' introuvable.")
         selected_event = event_name
     else:
+        if restrict_for_support:
+            selectable_events = get_events_for_support()
+        else:
+            selectable_events = all_events
         selected_event = prompt_from_list(
-            "Veuillez choisir l'evenement que vous voudriez voir (entrez le numéro)",
-            all_events
+            choose_msg("evenement"),
+            selectable_events
         )
     
     return selected_event
@@ -57,20 +60,19 @@ def client_from_list_or_argument(client_name, ctx, restrict_for_commercial=False
     This function handles the possible cases where such an argument is supplied and where it is not,
     and returns the user that should be acted upon.
     """
-    if restrict_for_commercial and ctx.obj["role"] == "commercial":
-        all_clients = get_clients_represented_by_commercial(ctx.obj["name"])
-    else:
-        all_clients = get_clients()
-
+    all_clients = get_clients()
     if client_name:
         if client_name not in all_clients:
-            click.echo(f"Client '{client_name}' introuvable.")
-            return
+            raise click.ClickException(f"Client '{client_name}' introuvable.")
         selected_client = client_name
     else:
+        if restrict_for_commercial and ctx.obj["role"] == "commercial":
+            selectable_clients = get_clients_represented_by_commercial(ctx.obj["name"])
+        else:
+            selectable_clients = all_clients
         selected_client = prompt_from_list(
-            "Veuillez choisir un client dans la liste de tous les clients (entrez le numéro)",
-            all_clients
+            choose_msg("client"),
+            selectable_clients
         )
     
     return selected_client
@@ -88,7 +90,8 @@ def prompt_from_list(prompt_text, options):
 
     click.echo(prompt_text)
     for number, option in numbered_options.items():
-        click.echo(f"{number}. {option}")
+        click.echo(list_options(number, option))
+    click.echo()
 
     choice_num = click.prompt(
         "Quelle option choisissez-vous ?",
@@ -132,7 +135,7 @@ def get_selected_field(dictionary):
     readable_list = [f"{k} ({v})" for k, v in dictionary.items()]
 
     selected_list_item = prompt_from_list(
-        "Veuillez choisir le champ que vous voudriez modifier",
+        choose_msg("champ"),
         readable_list
     )
 

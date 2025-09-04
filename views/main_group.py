@@ -22,8 +22,8 @@ def login_prompt():
         try:
             user_details = get_user_details(email, password)
             return generate_and_store_jwt(user_details)
-        except AuthError as e:
-            raise click.ClickException(e)
+        except Exception as e:
+            click.ClickException(e)
 
 @click.group()
 @click.pass_context

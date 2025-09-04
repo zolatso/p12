@@ -9,6 +9,9 @@ from db.read import (
 )
 from db.create import create_event
 from db.update import update_event
+from messages.messages import (
+    modification_success, welcome, success, display_event
+)
 from ..helper_functions.decorators import requires
 from ..helper_functions.helpers import (
     prompt_from_list, select_from_readable_contracts, event_from_list_or_argument, get_selected_field
@@ -29,7 +32,15 @@ clean_field_names = {
 @click.group()
 @click.pass_context
 def event_group(ctx):
-    """Event commands"""
+    """
+    Options pour afficher, créer, modifier et supprimer des evenements.
+    Seuls les membres de l’équipe commercial peuvent créer un evenement.
+    Seuls les membres de l’équipe support peuvent modifier les details d'un evenement (s'ils y sont associé).
+    Les membres de l'equipe gestion peuvent associer un membre de l'equipe support à un evenement.
+    Tous les equipes peuvent consulter les evenements, soit en
+    choisissant parmi une liste de noms, soit en saisissant le nom d’un evenement
+    spécifique avec l’option --nom "Nom de l'evenement".
+    """
 
 @event_group.command()
 @click.option("--nom", help="Le nom de l'evenement que vous voudriez voir")
@@ -37,6 +48,12 @@ def event_group(ctx):
 @click.pass_context
 @requires("read a resource")
 def show(ctx, nom, self):
+    """
+    Permet d'afficher des evenements spécifiques. 
+    Vous pouvez spécifier le nom d'un evenement avec --nom.
+    """
+    click.echo(welcome(ctx.obj["name"], "afficher", "evenement"))
+    # Checks the --self option and verifies if it is a member of the right team.
     if self:
         if ctx.obj["role"] != "support":
             raise click.ClickException(
@@ -47,13 +64,18 @@ def show(ctx, nom, self):
         selected_event = event_from_list_or_argument(nom, ctx) 
     
     event = get_specific_event(selected_event)
-    for k, v in event.items():
-        click.echo(f"{clean_field_names[k]}: {v}")
+
+    display_event({clean_field_names[k]: v for k, v in event.items()})
 
 @event_group.command()
 @click.pass_context
 @requires("create event")
 def add(ctx):
+    """
+    Permet la création d'un nouveau evenement.
+    """
+    click.echo(welcome(ctx.obj["name"], "ajouter", "client"))
+
     user = ctx.obj["name"]
     valid_contracts = signed_contracts_by_my_clients(user)
 
@@ -82,6 +104,7 @@ def add(ctx):
             attendees,
             notes
         )
+        click.echo(success("crée", "evenement"))
     except Exception as e:
         raise click.ClickException(f"Erreur: {e}")
     
@@ -89,6 +112,10 @@ def add(ctx):
 @click.pass_context
 @requires("update event")
 def update(ctx):
+    """
+    Permet la modification d'un evenement.
+    """
+    click.echo(welcome(ctx.obj["name"], "modifier", "evenement"))
     # Both gestion and support are able to update events. 
     # However, they have different capacities so we distinguish here.
     role = ctx.obj["role"]
@@ -106,7 +133,7 @@ def update(ctx):
             "Veuillez choisir le membre de l'equipe support que vous voudriez associer à cet evenement",
             equipe_support
         )
-        selected_field_name = "support_id"
+        selected_field = "support_id"
     else:
     # Modification for equipe support
     # Logic is slightly different to other updates. THere maybe a redundant db call here.
@@ -121,14 +148,28 @@ def update(ctx):
                 )
             case "attendees":
                 modification = valid_int("Combien d'invités ?")
-            case "name" | "client_contact" | "location" | "notes":
-                modification = valid_string(
+            case "name": 
+                modification = valid_string(100, 
                     f"Entrez le nouveau {clean_field_names[selected_field].lower()}"
                 )
+            case "client_contact": 
+                modification = valid_string(500, 
+                    f"Entrez le nouveau {clean_field_names[selected_field].lower()}"
+                )
+            case "location":
+                modification = valid_string(100,
+                    f"Entrez le nouveau {clean_field_names[selected_field].lower()}"
+                )
+            case "notes":
+                modification = valid_string(1000,
+                    f"Entrez le nouveau {clean_field_names[selected_field].lower()}"
+                )
+            
     try:
-        update_event(selected_event, selected_field_name, modification)
+        update_event(selected_event, selected_field, modification)
+        click.echo(modification_success(clean_field_names[selected_field].lower(), selected_event))
     except Exception as e:
-        click.ClickException(f"Erreur: {e}")  
+        raise click.ClickException(f"Erreur: {e}")  
 
 
 

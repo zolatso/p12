@@ -3,6 +3,9 @@ import rich_click as click
 from db.read import get_contracts_for_client
 from db.create import create_contract
 from db.update import update_contract
+from messages.messages import (
+    modification_success, welcome, success, display_contracts
+)
 from ..helper_functions.decorators import requires
 from ..helper_functions.helpers import (
     client_from_list_or_argument, get_clients, prompt_from_list, select_from_readable_contracts,
@@ -21,38 +24,40 @@ clean_field_names = {
 @click.group()
 @click.pass_context
 def contract_group(ctx):
-    """Contract commands"""
+    """
+    Options pour afficher, créer, et modifier des contrats.
+    Les membres de l’équipe gestion peuvent créer et modifier des contrats.
+    Les membres de l’équipe commercial peuvent modifier les contrats de leurs clients.
+    Les autres équipes peuvent consulter les coordonnées des contrats, soit en
+    choisissant parmi une liste de noms, soit en saisissant le nom d’un client
+    spécifique avec l’option --nom "Prénom Nom".
+    """
 
 @contract_group.command()
 @click.option("--nom", help="Le nom du client pour lequel vous voudriez voir les contrats")
+@click.option("--signed", is_flag=True, help="Pour voir que les contrats signé")
 @click.pass_context
 @requires("read a resource")
 def show(ctx, nom):
+    """
+    Permet d'afficher des contrats spécifiques. 
+    Vous pouvez spécifier le nom d'un client avec --nom pour voir les contrats qui lui sont associés.
+    """
+    click.echo(welcome(ctx.obj["name"], "afficher", "contrat"))
     selected_client = client_from_list_or_argument(nom, ctx)
     contracts = get_contracts_for_client(selected_client)
-    for contract in contracts:
-        click.echo("-"*50)
-        if "event" in contract: 
-            title = f"Le contrat pour l'evenement: {contract["event"]}"
-        else:
-            title = "Ce contrat n'a toujours pas d'evenement."
-        click.echo(title)
-        click.echo(f"Valeur du contrat: {contract["total_amount"]}")
-        click.echo(f"Montant non payé: {contract["amount_remaining"]}")
-        click.echo(f"Commercial associé avec ce contrat: {contract["associated_commercial"]}")
-        click.echo(f"Crée le: {contract["created_at"]}")
-        if contract["is_signed"]:
-            is_signed = "Ce contrat a été signé"
-        else:
-            is_signed = "Ce contrat n'a toujours pas été signé"
-        click.echo(is_signed)
+
+    display_contracts(contracts)
 
 @contract_group.command()
 @click.pass_context
 @requires("create contract")
 def add(ctx):
+    """
+    Permet la création d'un nouveau contrat.
+    """
     user = ctx.obj["name"]
-    click.echo(f"Bonjour {user}, vous allez créer un nouveau contrat.")
+    click.echo(welcome(ctx.obj["name"], "ajouter", "contrat"))
     clients = get_clients()
     selected_client = prompt_from_list(
             "Veuillez choisir le client pour lequel vous voudriez créer un contrat",
@@ -75,6 +80,7 @@ def add(ctx):
             created_at,
             is_signed
         )
+        click.echo(success("crée", "contrat"))
     except Exception as e:
         raise click.ClickException(f"Unexpected error: {e}")
 
@@ -83,6 +89,10 @@ def add(ctx):
 @click.pass_context
 @requires("update contract")
 def update(ctx, nom):
+    """
+    Permet la modification d'un contrat.
+    """
+    click.echo(welcome(ctx.obj["name"], "modifier", "client"))
     # The additional argument here means that if you are a commercial, you will only be shown
     # the clients that you are a representative of
     selected_client = client_from_list_or_argument(nom, ctx, restrict_for_commercial=True)
@@ -115,7 +125,7 @@ def update(ctx, nom):
                 )
     try:
         update_contract(selected_contract["id"], selected_field, modification)
-        click.echo(f"Le {clean_field_names["selected_field"]} de {selected_client} a été modifié.")
+        click.echo(modification_success(clean_field_names["selected_field"], selected_client))
     except Exception as e:
         click.ClickException(f"Unexpected error: {e}")
 

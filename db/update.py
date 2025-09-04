@@ -41,10 +41,14 @@ def update_contract(contract_id, field, new_value):
 def update_event(event_name, field, new_value):
     with get_db_session() as db:
         event_id = db.query(Event.id).filter_by(name=event_name).scalar()
-        # For changing the user, we need to extract the correct id
-        if field == "support_id":
-            value = db.query(User.id).filter_by(name=new_value).scalar()
-        else:
-            pass
-
+        match field:
+            # For changing the user, we need to extract the correct id
+            case "support_id":
+                value = db.query(User.id).filter_by(name=new_value).scalar()
+            case "start_time" | "end_time":
+                value = datetime.strptime(new_value, "%d/%m/%Y %H:%M")
+            case _:
+                value = new_value
+        print(event_id)
+        print(value)
         db.query(Event).filter_by(id=event_id).update({field: value})

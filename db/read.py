@@ -10,7 +10,7 @@ def get_user_details(email : str, password : str) -> dict:
     with get_db_session(read_only=True) as db:
         user = db.query(User).filter_by(email=email).first()
         if not user or not user.verify_password(password):
-            raise AuthError("Email or password is incorrect")
+            raise ValueError("Email or password is incorrect")
         user_details = {
             "name" : user.name,
             "role" : user.role_obj.name.value,
