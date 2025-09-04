@@ -28,7 +28,7 @@ Once installed, access MySQL in the terminal:
 mysql -u root -p
 ```
 
-You will have created this password during the MySQL installation process.
+You will have created the root password during the MySQL installation process.
 
 -----
 
