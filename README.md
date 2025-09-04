@@ -8,12 +8,13 @@
 
 Create and activate a virtual environment, then install dependencies from `requirements.txt`:
 
-```bash
+```
 python -m venv venv
 source venv/bin/activate   # On Linux/Mac
 venv\Scripts\activate      # On Windows
 
 pip install -r requirements.txt
+```
 
 ## Installation & Setup
 
@@ -23,7 +24,7 @@ pip install -r requirements.txt
 
 Once installed, access MySQL in the terminal:
 
-```bash
+```
 mysql -u root -p
 ```
 
