@@ -10,13 +10,4 @@ BLUE = "\033[34m"
 BRIGHT_RED = "\033[91m"
 BRIGHT_GREEN = "\033[92m"
 
-color_list = [
-    CYAN,
-    MAGENTA,
-    YELLOW,
-    GREEN,
-    RED,
-    BLUE,
-    BRIGHT_RED,
-    BRIGHT_GREEN
-]
+color_list = [CYAN, MAGENTA, YELLOW, GREEN, RED, BLUE, BRIGHT_RED, BRIGHT_GREEN]

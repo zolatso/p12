@@ -5,8 +5,13 @@ from ..helper_functions.helpers import user_from_list_or_argument, get_selected_
 from ..helper_functions.validators import valid_email, valid_string, valid_password
 
 from messages.messages import (
-    confirm_delete, deletion_avoided, display_user, deletion_successful, modification_success,
-    welcome, success
+    confirm_delete,
+    deletion_avoided,
+    display_user,
+    deletion_successful,
+    modification_success,
+    welcome,
+    success,
 )
 from messages.errors import wrong_team, user_not_found
 from db.create import create_user
@@ -27,6 +32,7 @@ def user_group(ctx):
     (--equipe "equipe") ou voir vos propres coordonnées (--self).
     """
 
+
 @user_group.command()
 @click.option("--nom", help="Le nom de l'utilisateur que vous voudriez voir")
 @click.option("--equipe", help="Le nom de l'equipe dont vous voudriez voir les membres")
@@ -35,15 +41,15 @@ def user_group(ctx):
 @requires("read a resource")
 def show(ctx, nom, equipe, self):
     """
-    La fonctionnalité d'affichage pour le groupe d'utilisateurs. Elle propose trois options : 
-    --nom (indiquez directement l'utilisateur que vous souhaitez voir), --équipe (choisissez une équipe particulière 
+    La fonctionnalité d'affichage pour le groupe d'utilisateurs. Elle propose trois options :
+    --nom (indiquez directement l'utilisateur que vous souhaitez voir), --équipe (choisissez une équipe particulière
     à consulter) et --self (une valeur booléenne pour voir vos propres détails).
     """
     click.echo(welcome(ctx.obj["name"], "afficher", "collaborateur"))
     # Check if user wants to see their own details
     if not self:
         # Check if team option has been set/passed
-        if equipe and equipe not in ['commercial','support','gestion']:
+        if equipe and equipe not in ["commercial", "support", "gestion"]:
             raise click.ClickException(wrong_team(equipe))
         if not equipe:
             equipe = "all"
@@ -59,13 +65,12 @@ def show(ctx, nom, equipe, self):
     display_user(user)
 
 
-
 @user_group.command()
 @click.pass_context
 @requires("create user")
 def add(ctx):
     """
-    Permet la création d'un nouvel utilisateur. 
+    Permet la création d'un nouvel utilisateur.
     Vérifie les autorisations, puis demande les informations nécessaires.
     """
     user = ctx.obj["name"]
@@ -76,26 +81,22 @@ def add(ctx):
     password = valid_password()
     role = click.prompt(
         "Leur role",
-        type=click.Choice(["gestion", "commercial", "support"], case_sensitive=False)
+        type=click.Choice(["gestion", "commercial", "support"], case_sensitive=False),
     )
     try:
-        create_user(
-            name,
-            email,
-            password,
-            role
-        )
+        create_user(name, email, password, role)
         click.echo(success("crée", "collaborateur"))
     except Exception as e:
         click.ClickException(f"Erreur: {e}")
-    
+
+
 @user_group.command()
 @click.option("--nom", help="Le nom de l'utilisateur que vous voudriez supprimer")
 @click.pass_context
 @requires("delete user")
 def delete(ctx, nom):
     """
-    Fonction permettant de supprimer un utilisateur, 
+    Fonction permettant de supprimer un utilisateur,
     soit en indiquant son nom, soit en le sélectionnant dans une liste.
     """
     click.echo(welcome(ctx.obj["name"], "supprimer", "collaborateur"))
@@ -114,6 +115,7 @@ def delete(ctx, nom):
             click.ClickException(f"Erreur: {e}")
     else:
         click.echo(deletion_avoided(selected_user))
+
 
 @user_group.command()
 @click.option("--nom", help="Le nom de l'utilisateur que vous voudriez supprimer")
@@ -134,14 +136,18 @@ def update(ctx, nom):
         case "role":
             modification = click.prompt(
                 f"Choisir le nouveau role pour {selected_user}",
-                type=click.Choice(["gestion", "commercial", "support"], case_sensitive=False)
+                type=click.Choice(
+                    ["gestion", "commercial", "support"], case_sensitive=False
+                ),
             )
         case "name":
-            modification = valid_string(100, f"Entrez le nouveau nom pour {selected_user}")
+            modification = valid_string(
+                100, f"Entrez le nouveau nom pour {selected_user}"
+            )
         case "email":
             modification = valid_email()
     try:
         update_user(selected_user, selected_field, modification)
         click.echo(modification_success(selected_field, selected_user))
     except Exception as e:
-        click.echo(f"Erreur: {e}")        
+        click.echo(f"Erreur: {e}")

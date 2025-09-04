@@ -25,6 +25,7 @@ def login_prompt():
         except Exception as e:
             click.ClickException(e)
 
+
 @click.group()
 @click.pass_context
 def cli_main(ctx):
@@ -37,7 +38,7 @@ def cli_main(ctx):
         token = get_stored_jwt_from_file()
         if not token:
             token = login_prompt()
-        try:    
+        try:
             data = verify_jwt(token)
             ctx.ensure_object(dict)
             ctx.obj = data
@@ -49,6 +50,7 @@ def cli_main(ctx):
         except Exception as e:
             click.ClickException(f"Erreur: {e}")
 
+
 @cli_main.command()
 def logout():
     """
@@ -56,6 +58,7 @@ def logout():
     """
     clear_token_file()
     click.echo(logout_success)
+
 
 cli_main.add_command(user_group)
 cli_main.add_command(client_group)

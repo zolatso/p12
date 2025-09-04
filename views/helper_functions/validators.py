@@ -2,9 +2,9 @@ import re
 import rich_click as click
 from datetime import datetime, date
 
-email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+email_regex = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
 password_regex = r'^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$'
-french_phone_regex = r'^0[1-9]\d{8}$'
+french_phone_regex = r"^0[1-9]\d{8}$"
 
 
 def valid_email(msg="Email"):
@@ -14,6 +14,7 @@ def valid_email(msg="Email"):
             return email
         click.echo("L'adresse e-mail n'est pas dans le bon format. Veuillez réessayer.")
 
+
 def valid_string(length, msg):
     while True:
         input = click.prompt(msg)
@@ -21,12 +22,18 @@ def valid_string(length, msg):
             return input
         click.echo("L'adresse e-mail n'est pas dans le bon format. Veuillez réessayer.")
 
+
 def valid_password():
     while True:
-        pw = click.prompt("Mot de passe (le mot de passe doit contenir au moins : une majuscule, un caractère spécial et un chiffre)")
+        pw = click.prompt(
+            "Mot de passe (le mot de passe doit contenir au moins : une majuscule, un caractère spécial et un chiffre)"
+        )
         if re.match(password_regex, pw):
             return pw
-        click.echo("Le mot de passe doit contenir au moins : une majuscule, un caractère spécial et un chiffre.")
+        click.echo(
+            "Le mot de passe doit contenir au moins : une majuscule, un caractère spécial et un chiffre."
+        )
+
 
 def valid_phone():
     while True:
@@ -35,9 +42,10 @@ def valid_phone():
             return phone
         click.echo("Le numero de telephone n'est pas valide. Veuillez réessayer.")
 
+
 def valid_date(msg, optional=False):
     while True:
-        date_str = click.prompt(msg, default='', show_default=False)
+        date_str = click.prompt(msg, default="", show_default=False)
         if optional and date_str == "":
             date_str = date.today().strftime("%d/%m/%Y")
         try:
@@ -46,6 +54,7 @@ def valid_date(msg, optional=False):
             return date_str
         except ValueError:
             click.echo("La date doit être valide et au format: dd/mm/yyyy")
+
 
 def valid_datetime(msg):
     while True:
@@ -56,6 +65,7 @@ def valid_datetime(msg):
             return datetime_str
         except ValueError:
             click.echo("L'heure doit être valide et au format: dd/mm/yyyy HH:MM")
+
 
 def valid_int(msg):
     while True:

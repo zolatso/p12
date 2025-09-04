@@ -1,7 +1,8 @@
 import functools
 import click
 import random
-from .ansi_escape_codes import * 
+from .ansi_escape_codes import *
+
 
 def framed(func):
     @functools.wraps(func)
@@ -13,4 +14,5 @@ def framed(func):
         click.echo(result)
         click.echo(f"{color}{BOLD}-{RESET}" * 80)
         click.echo()  # blank line
+
     return wrapper

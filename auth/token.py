@@ -5,11 +5,13 @@ from .file_actions import write_token_to_file, read_token_from_file, clear_token
 from .exc import AuthExpiredError, AuthInvalidError
 from . import SECRET_KEY
 
+
 def get_stored_jwt_from_file() -> str | None:
     """
     Retrieves the stored JWT from the local file.
     """
     return read_token_from_file()
+
 
 def generate_and_store_jwt(user_details: dict) -> str | None:
     """
@@ -25,8 +27,9 @@ def generate_and_store_jwt(user_details: dict) -> str | None:
     """
     try:
         time_concepts = {
-            "exp": datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=4),
-            "iat": datetime.datetime.now(datetime.timezone.utc)
+            "exp": datetime.datetime.now(datetime.timezone.utc)
+            + datetime.timedelta(hours=4),
+            "iat": datetime.datetime.now(datetime.timezone.utc),
         }
         user_details.update(time_concepts)
         payload = user_details
@@ -38,6 +41,7 @@ def generate_and_store_jwt(user_details: dict) -> str | None:
     except Exception as e:
         print(f"An error occurred during JWT generation and storage: {e}")
         return None
+
 
 def verify_jwt(token: str) -> dict | None:
     """
@@ -57,5 +61,3 @@ def verify_jwt(token: str) -> dict | None:
     except jwt.InvalidTokenError as e:
         clear_token_file()
         raise AuthInvalidError("JWT invalid") from e
-
-

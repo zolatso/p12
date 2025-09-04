@@ -3,8 +3,10 @@ from functools import wraps
 
 from messages.errors import perm_denied
 
+
 def requires(permission):
     """Decorator to enforce a required permission on a Click command."""
+
     def decorator(f):
         @wraps(f)
         @click.pass_context
@@ -14,8 +16,7 @@ def requires(permission):
             if permission not in permissions:
                 raise click.ClickException(perm_denied(role))
             return f(*args, **kwargs)
+
         return wrapper
+
     return decorator
-
-
-
