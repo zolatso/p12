@@ -30,9 +30,9 @@ def login_prompt():
 @click.pass_context
 def cli_main(ctx):
     """
-    La fonction principale du click. Tous les sous-groupes sont ajoutés ici.
-    La première chose qui se passe est que le script vérifie si le jeton est valide.
-    S'il n'y a pas de jeton, une invite de connexion s'affiche.
+    Cette application permet aux différents membres du personnel d'Epic Events de créer, 
+    mettre à jour et consulter les ressources stockées dans une base de données. 
+    Pour savoir comment l'utiliser, lisez le texte ci-dessous.
     """
     while True:
         token = get_stored_jwt_from_file()
