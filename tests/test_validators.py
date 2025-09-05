@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import Mock
 import rich_click as click
-from views.subgroups.helper_functions.validators import (
+from views.helper_functions.validators import (
     valid_email,
     valid_string,
     valid_password,

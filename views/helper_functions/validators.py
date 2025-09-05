@@ -1,6 +1,7 @@
 import re
 import rich_click as click
 from datetime import datetime, date
+from messages.ansi_escape_codes import BOLD, RED, RESET
 
 email_regex = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
 password_regex = r'^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$'
@@ -12,7 +13,7 @@ def valid_email(msg="Email"):
         email = click.prompt(msg)
         if re.match(email_regex, email):
             return email
-        click.echo("L'adresse e-mail n'est pas dans le bon format. Veuillez réessayer.")
+        click.echo(f"{BOLD}{RED}L'adresse e-mail n'est pas dans le bon format. Veuillez réessayer.{RESET}")
 
 
 def valid_string(length, msg):
@@ -20,7 +21,7 @@ def valid_string(length, msg):
         input = click.prompt(msg)
         if len(input) <= length:
             return input
-        click.echo("L'adresse e-mail n'est pas dans le bon format. Veuillez réessayer.")
+        click.echo(f"{BOLD}{RED}Le text que vous avez saisi est trop long. Veuillez réessayer.{RESET}")
 
 
 def valid_password():
@@ -31,7 +32,8 @@ def valid_password():
         if re.match(password_regex, pw):
             return pw
         click.echo(
-            "Le mot de passe doit contenir au moins : une majuscule, un caractère spécial et un chiffre."
+            f"{BOLD}{RED}Le mot de passe doit contenir au moins :" 
+            f"une majuscule, un caractère spécial et un chiffre.{RESET}"
         )
 
 
@@ -40,7 +42,7 @@ def valid_phone():
         phone = click.prompt("Numero de telephone (0x-xx-xx-xx-xx): ")
         if re.match(french_phone_regex, phone):
             return phone
-        click.echo("Le numero de telephone n'est pas valide. Veuillez réessayer.")
+        click.echo(f"{BOLD}{RED}Le numero de telephone n'est pas valide. Veuillez réessayer.{RESET}")
 
 
 def valid_date(msg, optional=False):
@@ -53,7 +55,7 @@ def valid_date(msg, optional=False):
             datetime.strptime(date_str, "%d/%m/%Y")
             return date_str
         except ValueError:
-            click.echo("La date doit être valide et au format: dd/mm/yyyy")
+            click.echo(f"{BOLD}{RED}La date doit être valide et au format: dd/mm/yyyy{RESET}")
 
 
 def valid_datetime(msg):
@@ -64,7 +66,7 @@ def valid_datetime(msg):
             datetime.strptime(datetime_str, "%d/%m/%Y %H:%M")
             return datetime_str
         except ValueError:
-            click.echo("L'heure doit être valide et au format: dd/mm/yyyy HH:MM")
+            click.echo(f"{BOLD}{RED}L'heure doit être valide et au format: dd/mm/yyyy HH:MM{RESET}")
 
 
 def valid_int(msg):
@@ -74,4 +76,4 @@ def valid_int(msg):
             int(int_string)
             return int_string
         except ValueError:
-            click.echo("Le montant doit être un nombre entier.")
+            click.echo(f"{BOLD}{RED}Le montant doit être un nombre entier.{RESET}")
